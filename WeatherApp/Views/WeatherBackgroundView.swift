@@ -297,14 +297,13 @@ struct RainView: View {
             ZStack {
                 ForEach(0..<intensity.dropCount, id: \.self) { i in
                     RainDrop(
-                        x: Double.random(in: 0...1),
-                        delay: Double.random(in: 0...2),
+                        x: Double(i) / Double(intensity.dropCount),
+                        delay: Double(i % 10) * 0.2,
                         speed: intensity.speed
                     )
-                    .stroke(Color.white.opacity(0.6), lineWidth: 2)
                     .frame(width: 2, height: intensity.length)
                     .position(
-                        x: geometry.size.width * CGFloat(Double.random(in: 0...1)),
+                        x: geometry.size.width * CGFloat(Double(i) * 1.618.truncatingRemainder(dividingBy: 1.0)),
                         y: CGFloat(fmod(phase * intensity.speed * 1000 + Double(i) * 20, Double(geometry.size.height + 100)))
                     )
                 }
@@ -383,7 +382,7 @@ struct LightningView: View {
             .onAppear {
                 startLightningAnimation()
             }
-            .onChange(of: phase) { _ in
+            .onChange(of: phase) { oldValue, newValue in
                 if Int.random(in: 0...100) < 5 { // 5% 概率触发闪电
                     triggerFlash()
                 }
