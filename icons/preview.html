@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WeatherApp Icons Preview</title>
+    <style>
+        body {
+            font-family: -apple-system, SF Pro Display, sans-serif;
+            background: #f5f5f7;
+            padding: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+        }
+        .icon-card {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .icon-container {
+            width: 200px;
+            height: 200px;
+            margin-bottom: 15px;
+            border-radius: 44px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+        .icon-container svg {
+            width: 100%;
+            height: 100%;
+        }
+        .icon-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+        }
+        .icon-desc {
+            font-size: 14px;
+            color: #86868b;
+        }
+        h1 {
+            width: 100%;
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #1d1d1f;
+        }
+    </style>
+</head>
+<body>
+    <h1>WeatherApp 图标候选方案</h1>
+    
+    <div class="icon-card">
+        <div class="icon-container">
+            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#FF6B35"/>
+                        <stop offset="100%" style="stop-color:#F7C59F"/>
+                    </linearGradient>
+                    <filter id="glow1">
+                        <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+                        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                </defs>
+                <rect width="1024" height="1024" rx="230" fill="url(#bg1)"/>
+                <circle cx="650" cy="450" r="120" fill="white" filter="url(#glow1)"/>
+                <g stroke="white" stroke-width="20" stroke-linecap="round" filter="url(#glow1)">
+                    <line x1="650" y1="280" x2="650" y2="220"/>
+                    <line x1="770" y1="330" x2="820" y2="280"/>
+                    <line x1="820" y1="450" x2="880" y2="450"/>
+                    <line x1="770" y1="570" x2="820" y2="620"/>
+                    <line x1="650" y1="620" x2="650" y2="680"/>
+                    <line x1="530" y1="570" x2="480" y2="620"/>
+                    <line x1="480" y1="450" x2="420" y2="450"/>
+                    <line x1="530" y1="330" x2="480" y2="280"/>
+                </g>
+                <g fill="white" opacity="0.9">
+                    <circle cx="300" cy="700" r="80"/>
+                    <circle cx="400" cy="720" r="100"/>
+                    <circle cx="500" cy="700" r="80"/>
+                    <rect x="300" y="700" width="200" height="100" rx="50"/>
+                </g>
+            </svg>
+        </div>
+        <div class="icon-name">方案一：极简太阳</div>
+        <div class="icon-desc">橙黄渐变 + 白色太阳</div>
+    </div>
+
+    <div class="icon-card">
+        <div class="icon-container">
+            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="bg2" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#4A90D9"/>
+                        <stop offset="100%" style="stop-color:#87CEEB"/>
+                    </linearGradient>
+                    <filter id="shadow2" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="10" stdDeviation="15" flood-color="#000" flood-opacity="0.15"/>
+                    </filter>
+                </defs>
+                <rect width="1024" height="1024" rx="230" fill="url(#bg2)"/>
+                <circle cx="750" cy="280" r="100" fill="#FFD700" opacity="0.6"/>
+                <g stroke="#FFD700" stroke-width="12" stroke-linecap="round" opacity="0.5">
+                    <line x1="750" y1="130" x2="750" y2="80"/>
+                    <line x1="850" y1="180" x2="890" y2="140"/>
+                    <line x1="900" y1="280" x2="950" y2="280"/>
+                </g>
+                <g fill="white" filter="url(#shadow2)">
+                    <circle cx="350" cy="550" r="100"/>
+                    <circle cx="512" cy="520" r="130"/>
+                    <circle cx="674" cy="550" r="100"/>
+                    <rect x="350" y="550" width="324" height="100" rx="50"/>
+                </g>
+                <g fill="white" opacity="0.7" filter="url(#shadow2)">
+                    <circle cx="200" cy="650" r="60"/>
+                    <circle cx="280" cy="640" r="75"/>
+                    <circle cx="360" cy="650" r="60"/>
+                    <rect x="200" y="650" width="160" height="65" rx="32"/>
+                </g>
+            </svg>
+        </div>
+        <div class="icon-name">方案二：蓝天白云</div>
+        <div class="icon-desc">天空蓝 + 立体白云</div>
+    </div>
+
+    <div class="icon-card">
+        <div class="icon-container">
+            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#1A1A2E"/>
+                        <stop offset="100%" style="stop-color:#4A4E69"/>
+                    </linearGradient>
+                    <filter id="goldGlow3">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                </defs>
+                <rect width="1024" height="1024" rx="230" fill="url(#bg3)"/>
+                <path d="M 350 450 A 150 150 0 0 1 650 450" fill="none" stroke="#FFD700" stroke-width="24" stroke-linecap="round" filter="url(#goldGlow3)"/>
+                <g stroke="#FFD700" stroke-width="16" stroke-linecap="round" filter="url(#goldGlow3)">
+                    <line x1="500" y1="220" x2="500" y2="170"/>
+                    <line x1="650" y1="280" x2="690" y2="240"/>
+                    <line x1="720" y1="400" x2="770" y2="400"/>
+                </g>
+                <g fill="none" stroke="#E0E0E0" stroke-width="16" stroke-linecap="round" opacity="0.8">
+                    <path d="M 300 600 Q 450 580 550 600 T 750 600"/>
+                    <path d="M 350 680 Q 500 660 600 680 T 800 680" opacity="0.6"/>
+                </g>
+                <g fill="white" opacity="0.8">
+                    <circle cx="200" cy="250" r="8"/>
+                    <circle cx="850" cy="200" r="6"/>
+                    <circle cx="900" cy="500" r="10"/>
+                    <circle cx="150" cy="550" r="5"/>
+                    <circle cx="800" cy="800" r="7"/>
+                </g>
+            </svg>
+        </div>
+        <div class="icon-name">方案三：抽象艺术</div>
+        <div class="icon-desc">深空渐变 + 金色线条</div>
+    </div>
+
+    <div class="icon-card">
+        <div class="icon-container">
+            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#FF6B35"/>
+                        <stop offset="50%" style="stop-color:#FFE66D"/>
+                        <stop offset="100%" style="stop-color:#4ECDC4"/>
+                    </linearGradient>
+                    <filter id="shadow4" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="15" stdDeviation="20" flood-color="#000" flood-opacity="0.2"/>
+                    </filter>
+                </defs>
+                <rect width="1024" height="1024" rx="230" fill="#F8F9FA"/>
+                <circle cx="512" cy="512" r="320" fill="none" stroke="url(#bg4)" stroke-width="60" filter="url(#shadow4)"/>
+                <text x="512" y="560" font-family="-apple-system, sans-serif" font-size="280" font-weight="600" fill="#2C3E50" text-anchor="middle">°</text>
+                <g fill="#CBD5E0">
+                    <circle cx="512" cy="120" r="15"/>
+                    <circle cx="512" cy="904" r="15"/>
+                    <circle cx="120" cy="512" r="15"/>
+                    <circle cx="904" cy="512" r="15"/>
+                </g>
+            </svg>
+        </div>
+        <div class="icon-name">方案四：温度圆环</div>
+        <div class="icon-desc">渐变圆环 + 温度符号</div>
+    </div>
+
+    <div class="icon-card">
+        <div class="icon-container">
+            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="bg5" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#56CCF2"/>
+                        <stop offset="100%" style="stop-color:#2F80ED"/>
+                    </linearGradient>
+                </defs>
+                <rect width="1024" height="1024" rx="230" fill="url(#bg5)"/>
+                <circle cx="720" cy="320" r="100" fill="#FFD93D"/>
+                <g stroke="#FFD93D" stroke-width="16" stroke-linecap="round">
+                    <line x1="720" y1="170" x2="720" y2="130"/>
+                    <line x1="870" y1="320" x2="910" y2="320"/>
+                    <line x1="820" y1="220" x2="850" y2="190"/>
+                    <line x1="820" y1="420" x2="850" y2="450"/>
+                </g>
+                <g fill="white" opacity="0.9">
+                    <ellipse cx="300" cy="600" rx="20" ry="35"/>
+                    <ellipse cx="400" cy="700" rx="20" ry="35"/>
+                    <ellipse cx="500" cy="580" rx="20" ry="35"/>
+                    <ellipse cx="600" cy="720" rx="20" ry="35"/>
+                </g>
+                <path d="M 200 750 Q 512 450 824 750" fill="none" stroke="white" stroke-width="20" stroke-linecap="round" opacity="0.3"/>
+            </svg>
+        </div>
+        <div class="icon-name">方案五：清新雨天</div>
+        <div class="icon-desc">太阳 + 雨滴 + 彩虹</div>
+    </div>
+
+</body>
+</html>

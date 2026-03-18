@@ -5,8 +5,12 @@ struct CityDetailView: View {
     @State private var lastSelectedCityId: UUID?
 
     var body: some View {
-        NavigationStack {
-            Group {
+        ZStack {
+            // 天气动画背景
+            WeatherBackgroundView(weatherCode: store.selectedCity?.weather?.current.weather_code)
+            
+            NavigationStack {
+                Group {
                 if let city = store.selectedCity {
                     CityWeatherDetailView(city: city) {
                         if let i = store.cities.firstIndex(where: { $0.id == city.id }) {
@@ -50,6 +54,7 @@ struct CityDetailView: View {
                         Task { await store.fetchWeather(at: idx) }
                     }
                 }
+            }
             }
         }
     }

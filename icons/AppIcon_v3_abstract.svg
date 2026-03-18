@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 深空渐变 -->
+    <linearGradient id="spaceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A2E"/>
+      <stop offset="100%" style="stop-color:#4A4E69"/>
+    </linearGradient>
+    <!-- 金色发光 -->
+    <filter id="goldGlow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="1024" height="1024" rx="230" fill="url(#spaceGradient)"/>
+  
+  <!-- 抽象太阳弧线 -->
+  <path d="M 350 450 A 150 150 0 0 1 650 450" 
+        fill="none" 
+        stroke="#FFD700" 
+        stroke-width="24" 
+        stroke-linecap="round"
+        filter="url(#goldGlow)"/>
+  
+  <!-- 太阳光线（抽象） -->
+  <g stroke="#FFD700" stroke-width="16" stroke-linecap="round" filter="url(#goldGlow)">
+    <line x1="500" y1="220" x2="500" y2="170"/>
+    <line x1="650" y1="280" x2="690" y2="240"/>
+    <line x1="720" y1="400" x2="770" y2="400"/>
+  </g>
+  
+  <!-- 风/云线条 -->
+  <g fill="none" stroke="#E0E0E0" stroke-width="16" stroke-linecap="round" opacity="0.8">
+    <path d="M 300 600 Q 450 580 550 600 T 750 600"/>
+    <path d="M 350 680 Q 500 660 600 680 T 800 680" opacity="0.6"/>
+  </g>
+  
+  <!-- 星星点缀 -->
+  <g fill="white" opacity="0.8">
+    <circle cx="200" cy="250" r="8"/>
+    <circle cx="850" cy="200" r="6"/>
+    <circle cx="900" cy="500" r="10"/>
+    <circle cx="150" cy="550" r="5"/>
+    <circle cx="800" cy="800" r="7"/>
+  </g>
+</svg>

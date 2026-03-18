@@ -12,8 +12,12 @@ struct CityListView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            List {
+        ZStack {
+            // 天气动画背景
+            WeatherBackgroundView(weatherCode: store.selectedCity?.weather?.current.weather_code)
+            
+            NavigationStack {
+                List {
                 // GPS 当前位置
                 Section {
                     Button {
@@ -91,6 +95,7 @@ struct CityListView: View {
                 if store.cities.allSatisfy({ $0.weather == nil }) {
                     await store.fetchAllWeather()
                 }
+            }
             }
         }
     }

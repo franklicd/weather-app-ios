@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 渐变背景 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B35"/>
+      <stop offset="100%" style="stop-color:#F7C59F"/>
+    </linearGradient>
+    <!-- 太阳发光效果 -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="1024" height="1024" rx="230" fill="url(#bgGradient)"/>
+  
+  <!-- 太阳主体 -->
+  <circle cx="650" cy="450" r="120" fill="white" filter="url(#glow)"/>
+  
+  <!-- 太阳光线 -->
+  <g stroke="white" stroke-width="20" stroke-linecap="round" filter="url(#glow)">
+    <!-- 8条光线 -->
+    <line x1="650" y1="280" x2="650" y2="220"/>
+    <line x1="770" y1="330" x2="820" y2="280"/>
+    <line x1="820" y1="450" x2="880" y2="450"/>
+    <line x1="770" y1="570" x2="820" y2="620"/>
+    <line x1="650" y1="620" x2="650" y2="680"/>
+    <line x1="530" y1="570" x2="480" y2="620"/>
+    <line x1="480" y1="450" x2="420" y2="450"/>
+    <line x1="530" y1="330" x2="480" y2="280"/>
+  </g>
+  
+  <!-- 小云朵装饰 -->
+  <g fill="white" opacity="0.9">
+    <circle cx="300" cy="700" r="80"/>
+    <circle cx="400" cy="720" r="100"/>
+    <circle cx="500" cy="700" r="80"/>
+    <rect x="300" y="700" width="200" height="100" rx="50"/>
+  </g>
+</svg>
