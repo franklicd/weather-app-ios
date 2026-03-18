@@ -19,6 +19,7 @@
 		A010 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F010 /* Assets.xcassets */; };
 		A011 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F012 /* SplashScreenView.swift */; };
 		A012 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F013 /* PrivacyInfo.xcprivacy */; };
+		A013 /* WeatherBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F014 /* WeatherBackgroundView.swift */; };
 		T001 /* WeatherStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TF001 /* WeatherStoreTests.swift */; };
 		T002 /* WeatherModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TF002 /* WeatherModelsTests.swift */; };
 		T003 /* AlertGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TF003 /* AlertGeneratorTests.swift */; };
@@ -48,6 +49,7 @@
 		F011 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F012 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
 		F013 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		F014 /* WeatherBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherBackgroundView.swift; sourceTree = "<group>"; };
 		PROD /* WeatherApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeatherApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		TESTPROD /* WeatherAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WeatherAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		TF001 /* WeatherStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherStoreTests.swift; sourceTree = "<group>"; };
@@ -149,6 +151,7 @@
 				F008 /* CityDetailView.swift */,
 				F009 /* SettingsView.swift */,
 				F012 /* SplashScreenView.swift */,
+				F014 /* WeatherBackgroundView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -257,6 +260,7 @@
 				A008 /* CityDetailView.swift in Sources */,
 				A009 /* SettingsView.swift in Sources */,
 				A011 /* SplashScreenView.swift in Sources */,
+				A013 /* WeatherBackgroundView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

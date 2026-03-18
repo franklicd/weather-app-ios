@@ -1,6 +1,5 @@
 import Foundation
 import CoreLocation
-@preconcurrency import MapKit
 
 @MainActor
 final class LocationService: NSObject, @unchecked Sendable {
@@ -31,13 +30,15 @@ final class LocationService: NSObject, @unchecked Sendable {
     }
 
     private func reverseGeocode(_ location: CLLocation) {
-        guard let request = MKReverseGeocodingRequest(location: location) else { return }
+        let geocoder = CLGeocoder()
         Task {
             do {
-                let mapItems = try await request.mapItems
-                locationName = mapItems.first?.address?.shortAddress
-                    ?? mapItems.first?.address?.fullAddress
-                    ?? "当前位置"
+                let placemarks = try await geocoder.reverseGeocodeLocation(location)
+                if let placemark = placemarks.first {
+                    locationName = placemark.locality
+                        ?? placemark.administrativeArea
+                        ?? "当前位置"
+                }
             } catch {
                 print("Reverse geocode error: \(error)")
             }
