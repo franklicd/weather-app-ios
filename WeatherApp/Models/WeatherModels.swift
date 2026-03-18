@@ -133,3 +133,23 @@ struct PresetCity {
     let lat: Double
     let lon: Double
 }
+
+// MARK: - Geocoding
+
+struct GeocodingResult: Codable, Identifiable {
+    let id: Int
+    let name: String
+    let latitude: Double
+    let longitude: Double
+    let country: String?
+    let admin1: String?
+    let country_code: String?
+
+    var subtitle: String {
+        [admin1, country].compactMap { $0 }.joined(separator: ", ")
+    }
+}
+
+struct GeocodingResponse: Codable {
+    let results: [GeocodingResult]?
+}

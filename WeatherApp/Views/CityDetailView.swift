@@ -5,12 +5,8 @@ struct CityDetailView: View {
     @State private var lastSelectedCityId: UUID?
 
     var body: some View {
-        ZStack {
-            // 天气动画背景
-            WeatherBackgroundView(weatherCode: store.selectedCity?.weather?.current.weather_code)
-            
-            NavigationStack {
-                Group {
+        NavigationStack {
+            Group {
                 if let city = store.selectedCity {
                     CityWeatherDetailView(city: city) {
                         if let i = store.cities.firstIndex(where: { $0.id == city.id }) {
@@ -26,6 +22,7 @@ struct CityDetailView: View {
                 }
             }
             .navigationTitle(store.selectedCity?.name ?? "详情")
+            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     if let idx = store.cities.firstIndex(where: { $0.id == store.selectedCity?.id }) {
@@ -39,24 +36,24 @@ struct CityDetailView: View {
                 }
             }
             .onAppear {
-                // 进入详情页时自动刷新当前城市天气
                 if let idx = store.cities.firstIndex(where: { $0.id == store.selectedCity?.id }) {
                     Task { await store.fetchWeather(at: idx) }
                 }
             }
             .onChange(of: store.selectedCity?.id) { oldValue, newValue in
-                // 切换城市时强制刷新
                 if let newId = newValue, newId != lastSelectedCityId {
                     lastSelectedCityId = newId
                     if let idx = store.cities.firstIndex(where: { $0.id == newId }) {
-                        // 清空当前城市数据，显示加载状态
                         store.clearCityData(at: idx)
                         Task { await store.fetchWeather(at: idx) }
                     }
                 }
             }
+        .background {
+                WeatherBackgroundView(weatherCode: store.selectedCity?.weather?.current.weather_code)
+                    .ignoresSafeArea()
             }
-        }
+        } // NavigationStack
     }
 }
 
@@ -138,6 +135,7 @@ struct CityWeatherDetailView: View {
         .refreshable {
             await onRefresh()
         }
+        .background(.clear)
     }
 }
 
