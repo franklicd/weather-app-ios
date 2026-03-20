@@ -7,7 +7,16 @@
       "Bash(killall xcodebuild:*)",
       "Bash(identify:*)",
       "Bash(find:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(xcrun simctl:*)",
+      "Bash(screencapture:*)",
+      "Bash(open:*)",
+      "Bash(osascript:*)",
+      "Bash(file:*)",
+      "Bash(ls:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
     ]
   }
 }

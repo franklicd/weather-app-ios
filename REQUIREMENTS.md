@@ -1,4 +1,4 @@
-# WeatherApp - iOS 天气应用需求文档
+# SimpleWeatherApp - iOS 天气应用需求文档
 
 ## 项目概述
 开发一个 iOS 天气应用，使用 SwiftUI 框架，支持 iOS 26+ 最新 API。

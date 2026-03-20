@@ -1,4 +1,4 @@
-# WeatherApp - App Store 发布清单
+# SimpleWeatherApp - App Store 发布清单
 
 ## 第一阶段：准备工作（Claude Code 完成）
 

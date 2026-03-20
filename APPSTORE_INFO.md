@@ -1,10 +1,10 @@
-# WeatherApp - App Store Connect 填写模板
+# SimpleWeatherApp - App Store Connect 填写模板
 
 ## 基本信息
 
 ### 应用名称
 ```
-天气 - 实时天气预报
+简天气 - 实时天气预报
 ```
 
 ### 副标题（30字以内）

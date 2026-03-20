@@ -1,13 +1,13 @@
 #!/usr/bin/env swift
 // generate_icon.swift
-// 生成 WeatherApp App Icon (1024×1024 PNG)
+// 生成 SimpleWeatherApp App Icon (1024×1024 PNG)
 // 运行方法: swift scripts/generate_icon.swift
 
 import AppKit
 import CoreGraphics
 
 let size = 1024
-let outputPath = "WeatherApp/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png"
+let outputPath = "SimpleWeatherApp/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png"
 
 // MARK: - Canvas
 
