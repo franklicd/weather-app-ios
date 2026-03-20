@@ -1,0 +1,30 @@
+# Build
+*.xcarchive
+build/
+DerivedData/
+
+# Xcode
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+*.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/IDETemplateMacros.plist
+*.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+*.xcodeproj/xcshareddata/
+*.xcodeproj/project.xcworkspace/swiftpm/configuration/registries.json
+*.xcodeproj/project.xcworkspace/swiftpm/xcshareddata/xcschemes/
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+
+# Testing
+*.xctestplan
+
+# Simulator
+*.app.simulator
+
+# Provisioning
+*.mobileprovision
+*.provisionprofile
