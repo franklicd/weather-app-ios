@@ -18,6 +18,8 @@ DerivedData/
 *.tmp
 *.temp
 .DS_Store
+.claude/
+*.xcuserstate
 
 # Testing
 *.xctestplan
