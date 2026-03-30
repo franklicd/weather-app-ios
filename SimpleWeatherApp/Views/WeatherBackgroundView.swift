@@ -343,21 +343,38 @@ struct SnowView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                ForEach(0..<intensity.flakeCount, id: \.self) { i in
-                    Circle()
-                        .fill(Color.white.opacity(0.8))
-                        .frame(width: 4 + CGFloat.random(in: 0...4))
-                        .position(
-                            x: CGFloat(fmod(phase * 50 + Double(i) * 30, Double(geometry.size.width))),
-                            y: CGFloat(fmod(phase * 30 + Double(i) * 25, Double(geometry.size.height + 50)))
-                        )
-                        .offset(
-                            x: sin(phase * .pi * 2 + Double(i)) * 30,
-                            y: 0
-                        )
-                }
+                snowFlakes(in: geometry)
             }
         }
+    }
+    
+    @ViewBuilder
+    private func snowFlakes(in geometry: GeometryProxy) -> some View {
+        ForEach(0..<intensity.flakeCount, id: \.self) { i in
+            SnowFlakeView(
+                phase: phase,
+                index: i,
+                geometry: geometry
+            )
+        }
+    }
+}
+
+struct SnowFlakeView: View {
+    let phase: Double
+    let index: Int
+    let geometry: GeometryProxy
+    
+    var body: some View {
+        let xPosition = CGFloat(fmod(phase * 50 + Double(index) * 30, Double(geometry.size.width)))
+        let yPosition = CGFloat(fmod(phase * 30 + Double(index) * 25, Double(geometry.size.height + 50)))
+        let xOffset = sin(phase * .pi * 2 + Double(index)) * 30
+        
+        Circle()
+            .fill(Color.white.opacity(0.8))
+            .frame(width: 4 + CGFloat.random(in: 0...4))
+            .position(x: xPosition, y: yPosition)
+            .offset(x: xOffset, y: 0)
     }
 }
 
@@ -384,7 +401,9 @@ struct LightningView: View {
             }
             .onChange(of: phase) { oldValue, newValue in
                 if Int.random(in: 0...100) < 5 { // 5% 概率触发闪电
-                    triggerFlash()
+                    Task { @MainActor in
+                        triggerFlash()
+                    }
                 }
             }
         }
@@ -393,11 +412,14 @@ struct LightningView: View {
     private func startLightningAnimation() {
         Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { _ in
             if Int.random(in: 0...100) < 30 { // 30% 概率每3秒
-                triggerFlash()
+                Task { @MainActor in
+                    triggerFlash()
+                }
             }
         }
     }
     
+    @MainActor
     private func triggerFlash() {
         withAnimation(.easeOut(duration: 0.1)) {
             flashOpacity = 1.0
