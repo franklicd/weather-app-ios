@@ -88,7 +88,7 @@ struct CityListView: View {
                             Button {
                                 store.selectedIndex = idx
                             } label: {
-                                EnhancedCityRowView(city: city, isSelected: store.selectedIndex == idx)
+                                CityRowView(city: city, isSelected: store.selectedIndex == idx)
                             }
                             .buttonStyle(.plain)
                             .listRowBackground(Color.white.opacity(0.18))
@@ -144,31 +144,23 @@ struct CityListView: View {
     }
 }
 
-// MARK: - Enhanced City Row
+// MARK: - City Row
 
-struct EnhancedCityRowView: View {
+struct CityRowView: View {
     let city: CityWeather
     let isSelected: Bool
 
     var body: some View {
-        HStack(spacing: 16) {
-            // 左侧：城市信息
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 4) {
                     if city.isCurrentLocation {
-                        ZStack {
-                            Circle()
-                                .fill(Color.blue.opacity(0.2))
-                                .frame(width: 28, height: 28)
-                            
-                            Image(systemName: "location.fill")
-                                .font(.caption)
-                                .foregroundStyle(.blue)
-                        }
+                        Image(systemName: "location.fill")
+                            .font(.caption)
+                            .foregroundStyle(.blue)
                     }
                     Text(city.name)
-                        .font(.title3)
-                        .fontWeight(.semibold)
+                        .font(.headline)
                     
                     // 告警数量徽章
                     if !city.alerts.isEmpty {
@@ -183,119 +175,49 @@ struct EnhancedCityRowView: View {
                                 )
                             
                             Text("\(city.alerts.count)")
-                                .font(.system(size: 12, weight: .bold))
+                                .font(.system(size: 10, weight: .bold))
                                 .foregroundStyle(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
                         }
                         .fixedSize()
-                        .shadow(color: Color.orange.opacity(0.4), radius: 4, x: 0, y: 2)
                     }
                 }
-                
                 if let weather = city.weather {
                     Text(WeatherCode.description(for: weather.current.weather_code))
-                        .font(.subheadline)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 } else if city.isLoading {
-                    HStack(spacing: 6) {
-                        ProgressView()
-                            .scaleEffect(0.7)
-                        Text("加载中...")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
+                    Text("加载中...")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
 
             Spacer()
 
-            // 右侧：天气信息
-            HStack(spacing: 12) {
-                if city.isLoading {
-                    ProgressView()
-                        .scaleEffect(1.0)
-                } else if let weather = city.weather {
-                    // 天气图标
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.orange.opacity(0.3), Color.orange.opacity(0.1)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 56, height: 56)
-                        
-                        Image(systemName: WeatherCode.icon(for: weather.current.weather_code))
-                            .font(.system(size: 28, weight: .medium))
-                            .foregroundStyle(.orange)
-                    }
-                    .shadow(color: .orange.opacity(0.3), radius: 8, x: 0, y: 4)
-                    
-                    // 温度
+            if city.isLoading {
+                ProgressView()
+                    .scaleEffect(0.8)
+            } else if let weather = city.weather {
+                HStack(spacing: 6) {
+                    Image(systemName: WeatherCode.icon(for: weather.current.weather_code))
+                        .foregroundStyle(.orange)
                     Text("\(Int(weather.current.temperature_2m))°")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundStyle(.primary)
-                }
-
-                // 选中标识
-                if isSelected {
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.blue, Color.blue.opacity(0.7)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 32, height: 32)
-                            .shadow(color: .blue.opacity(0.4), radius: 8, x: 0, y: 4)
-                        
-                        Image(systemName: "checkmark")
-                            .foregroundStyle(.white)
-                            .font(.system(size: 16, weight: .semibold))
-                    }
+                        .font(.title2)
+                        .fontWeight(.semibold)
                 }
             }
+
+            if isSelected {
+                Image(systemName: "checkmark")
+                    .foregroundStyle(.blue)
+                    .font(.caption)
+            }
         }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(
-                    isSelected ?
-                    LinearGradient(
-                        colors: [Color.blue.opacity(0.25), Color.blue.opacity(0.1)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ) :
-                    LinearGradient(
-                        colors: [Color.white.opacity(0.15), Color.white.opacity(0.05)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .shadow(color: isSelected ? Color.blue.opacity(0.3) : .black.opacity(0.2), radius: isSelected ? 16 : 12, x: 0, y: isSelected ? 8 : 6)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(
-                            isSelected ?
-                            LinearGradient(
-                                colors: [Color.blue.opacity(0.6), Color.blue.opacity(0.2)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ) :
-                            LinearGradient(
-                                colors: [Color.white.opacity(0.2), Color.white.opacity(0.05)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: isSelected ? 2 : 1.5
-                        )
-                )
-        )
+        .padding(.vertical, 4)
+        .background(isSelected ? Color.blue.opacity(0.08) : .clear)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 

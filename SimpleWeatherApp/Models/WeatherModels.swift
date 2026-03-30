@@ -6,6 +6,7 @@ import SwiftUI
 struct WeatherData: Codable {
     let current: CurrentWeather
     let daily: DailyForecast
+    let hourly: HourlyForecast?
 }
 
 struct CurrentWeather: Codable {
@@ -22,6 +23,12 @@ struct DailyForecast: Codable {
     let weather_code: [Int]
     let temperature_2m_max: [Double]
     let temperature_2m_min: [Double]
+}
+
+struct HourlyForecast: Codable {
+    let time: [String]
+    let temperature_2m: [Double]
+    let weather_code: [Int]
 }
 
 // MARK: - Air Quality

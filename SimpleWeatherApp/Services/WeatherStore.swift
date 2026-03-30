@@ -7,7 +7,14 @@ import Observation
 @Observable
 class WeatherStore {
     var cities: [CityWeather] = []
-    var selectedIndex: Int = 0
+    var selectedIndex: Int = 0 {
+        didSet {
+            // Pre-fetch weather data for the selected city if needed
+            if cities.indices.contains(selectedIndex), cities[selectedIndex].weather == nil {
+                Task { await fetchWeather(at: selectedIndex) }
+            }
+        }
+    }
     var locationError: String?
 
     private let locationService = LocationService()
@@ -163,7 +170,9 @@ class WeatherStore {
             .init(name: "latitude", value: "\(lat)"),
             .init(name: "longitude", value: "\(lon)"),
             .init(name: "current", value: "temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,visibility"),
+            .init(name: "hourly", value: "temperature_2m,weather_code"),
             .init(name: "daily", value: "weather_code,temperature_2m_max,temperature_2m_min"),
+            .init(name: "forecast_days", value: "7"),
             .init(name: "timezone", value: "auto"),
         ]
         guard let url = components.url else { return nil }

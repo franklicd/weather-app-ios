@@ -44,7 +44,7 @@ struct CityDetailView: View {
                 if let newId = newValue, newId != lastSelectedCityId {
                     lastSelectedCityId = newId
                     if let idx = store.cities.firstIndex(where: { $0.id == newId }) {
-                        store.clearCityData(at: idx)
+                        // Don't clear existing data to avoid showing -1000, just refresh if needed
                         Task { await store.fetchWeather(at: idx) }
                     }
                 }

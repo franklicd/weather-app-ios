@@ -228,22 +228,39 @@ struct FloatingCloudsView: View {
     
     var body: some View {
         GeometryReader { geometry in
+            let size = geometry.size
             ZStack {
-                ForEach(0..<density.count, id: \.self) { i in
+                ForEach(Array(0..<density.count), id: \.self) { i in
+                    let iDouble = Double(i)
                     CloudShape()
                         .fill(Color.white.opacity(density.opacity))
-                        .frame(width: 120 + Double(i * 20), height: 60 + Double(i * 10))
-                        .offset(
-                            x: sin(phase * .pi * 2 + Double(i)) * 50 + Double(i * 30) - 100,
-                            y: cos(phase * .pi * 2 + Double(i) * 0.5) * 20 + Double(i * 40)
-                        )
-                        .position(
-                            x: geometry.size.width * (0.2 + Double(i) * 0.15),
-                            y: geometry.size.height * (0.15 + Double(i % 3) * 0.1)
-                        )
+                        .frame(width: 120 + iDouble * 20, height: 60 + iDouble * 10)
+                        .modifier(CloudPositionModifier(
+                            phase: phase,
+                            i: iDouble,
+                            geometrySize: size
+                        ))
                 }
             }
         }
+    }
+}
+
+struct CloudPositionModifier: ViewModifier {
+    let phase: Double
+    let i: Double
+    let geometrySize: CGSize
+    
+    func body(content: Content) -> some View {
+        content
+            .offset(
+                x: sin(phase * .pi * 2 + i) * 50 + i * 30 - 100,
+                y: cos(phase * .pi * 2 + i * 0.5) * 20 + i * 40
+            )
+            .position(
+                x: geometrySize.width * (0.2 + i * 0.15),
+                y: geometrySize.height * (0.15 + Double(Int(i) % 3) * 0.1)
+            )
     }
 }
 
@@ -321,20 +338,36 @@ struct RainView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                ForEach(0..<intensity.dropCount, id: \.self) { i in
+                ForEach(Array(0..<intensity.dropCount), id: \.self) { i in
                     RainDrop(
                         x: Double(i) / Double(intensity.dropCount),
                         delay: Double(i % 10) * 0.2,
                         speed: intensity.speed
                     )
                     .frame(width: 2, height: intensity.length)
-                    .position(
-                        x: geometry.size.width * CGFloat(Double(i) * 1.618.truncatingRemainder(dividingBy: 1.0)),
-                        y: CGFloat(fmod(phase * intensity.speed * 1000 + Double(i) * 20, Double(geometry.size.height + 100)))
-                    )
+                    .modifier(RainDropPositionModifier(
+                        phase: phase,
+                        intensity: intensity,
+                        i: i,
+                        geometrySize: geometry.size
+                    ))
                 }
             }
         }
+    }
+}
+
+struct RainDropPositionModifier: ViewModifier {
+    let phase: Double
+    let intensity: RainView.RainIntensity
+    let i: Int
+    let geometrySize: CGSize
+    
+    func body(content: Content) -> some View {
+        let iDouble = Double(i)
+        let x = geometrySize.width * CGFloat(iDouble * 1.618.truncatingRemainder(dividingBy: 1.0))
+        let y = CGFloat(fmod(phase * intensity.speed * 1000 + iDouble * 20, Double(geometrySize.height + 100)))
+        content.position(x: x, y: y)
     }
 }
 
@@ -369,38 +402,37 @@ struct SnowView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                snowFlakes(in: geometry)
+                ForEach(Array(0..<intensity.flakeCount), id: \.self) { i in
+                    Circle()
+                        .fill(Color.white.opacity(0.8))
+                        .frame(width: 4 + CGFloat.random(in: 0...4))
+                        .modifier(SnowFlakePositionModifier(
+                            phase: phase,
+                            i: i,
+                            geometrySize: geometry.size
+                        ))
+                }
             }
-        }
-    }
-    
-    @ViewBuilder
-    private func snowFlakes(in geometry: GeometryProxy) -> some View {
-        ForEach(0..<intensity.flakeCount, id: \.self) { i in
-            SnowFlakeView(
-                phase: phase,
-                index: i,
-                geometry: geometry
-            )
         }
     }
 }
 
-struct SnowFlakeView: View {
+struct SnowFlakePositionModifier: ViewModifier {
     let phase: Double
-    let index: Int
-    let geometry: GeometryProxy
+    let i: Int
+    let geometrySize: CGSize
     
-    var body: some View {
-        let xPosition = CGFloat(fmod(phase * 50 + Double(index) * 30, Double(geometry.size.width)))
-        let yPosition = CGFloat(fmod(phase * 30 + Double(index) * 25, Double(geometry.size.height + 50)))
-        let xOffset = sin(phase * .pi * 2 + Double(index)) * 30
-        
-        Circle()
-            .fill(Color.white.opacity(0.8))
-            .frame(width: 4 + CGFloat.random(in: 0...4))
-            .position(x: xPosition, y: yPosition)
-            .offset(x: xOffset, y: 0)
+    func body(content: Content) -> some View {
+        let iDouble = Double(i)
+        content
+            .position(
+                x: CGFloat(fmod(phase * 50 + iDouble * 30, Double(geometrySize.width))),
+                y: CGFloat(fmod(phase * 30 + iDouble * 25, Double(geometrySize.height + 50)))
+            )
+            .offset(
+                x: sin(phase * .pi * 2 + iDouble) * 30,
+                y: 0
+            )
     }
 }
 
