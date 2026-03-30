@@ -13,6 +13,7 @@
 		A004 /* CityDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F004 /* CityDataService.swift */; };
 		A005 /* WeatherStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F005 /* WeatherStore.swift */; };
 		A006 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F006 /* LocationService.swift */; };
+		A016 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F017 /* NotificationManager.swift */; };
 		A007 /* CityListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F007 /* CityListView.swift */; };
 		A008 /* CityDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F008 /* CityDetailView.swift */; };
 		A009 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F009 /* SettingsView.swift */; };
@@ -54,6 +55,7 @@
 		F014 /* WeatherBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherBackgroundView.swift; sourceTree = "<group>"; };
 		F015 /* ImprovedWeatherAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImprovedWeatherAnimations.swift; sourceTree = "<group>"; };
 		F016 /* AlertBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertBannerView.swift; sourceTree = "<group>"; };
+		F017 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		PROD /* WeatherApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeatherApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		TESTPROD /* WeatherAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WeatherAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		TF001 /* WeatherStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherStoreTests.swift; sourceTree = "<group>"; };
@@ -134,6 +136,7 @@
 				F004 /* CityDataService.swift */,
 				F005 /* WeatherStore.swift */,
 				F006 /* LocationService.swift */,
+				F017 /* NotificationManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -262,6 +265,7 @@
 				A004 /* CityDataService.swift in Sources */,
 				A005 /* WeatherStore.swift in Sources */,
 				A006 /* LocationService.swift in Sources */,
+				A016 /* NotificationManager.swift in Sources */,
 				A007 /* CityListView.swift in Sources */,
 				A008 /* CityDetailView.swift in Sources */,
 				A009 /* SettingsView.swift in Sources */,

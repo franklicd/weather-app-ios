@@ -35,20 +35,7 @@ struct CityDetailView: View {
                     }
                 }
             }
-            .onAppear {
-                if let idx = store.cities.firstIndex(where: { $0.id == store.selectedCity?.id }) {
-                    Task { await store.fetchWeather(at: idx) }
-                }
-            }
-            .onChange(of: store.selectedCity?.id) { oldValue, newValue in
-                if let newId = newValue, newId != lastSelectedCityId {
-                    lastSelectedCityId = newId
-                    if let idx = store.cities.firstIndex(where: { $0.id == newId }) {
-                        // Don't clear existing data to avoid showing -1000, just refresh if needed
-                        Task { await store.fetchWeather(at: idx) }
-                    }
-                }
-            }
+
         .background {
                 WeatherBackgroundView(weatherCode: store.selectedCity?.weather?.current.weather_code)
                     .ignoresSafeArea()
@@ -90,7 +77,7 @@ struct CityWeatherDetailView: View {
                         }
 
                         // 主温度卡片
-                        MainWeatherCard(weather: weather.current)
+                        MainWeatherCard(weather: weather.current, alertCount: city.alerts.count)
 
                         // 预警横幅（保留在详情区域）
                         if !city.alerts.isEmpty {
@@ -156,11 +143,35 @@ struct CityWeatherDetailView: View {
 
 struct MainWeatherCard: View {
     let weather: CurrentWeather
+    let alertCount: Int
 
     var body: some View {
         VStack(spacing: 12) {
-            DynamicWeatherIcon(weatherCode: weather.weather_code)
-                .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+            ZStack(alignment: .topTrailing) {
+                DynamicWeatherIcon(weatherCode: weather.weather_code)
+                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+                
+                if alertCount > 0 {
+                    ZStack {
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.red.opacity(0.9), Color.orange.opacity(0.7)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                        
+                        Text("\(alertCount)")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                    }
+                    .fixedSize()
+                    .offset(x: 10, y: -10)
+                }
+            }
 
             TemperatureView(temperature: weather.temperature_2m)
                 .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 3)
