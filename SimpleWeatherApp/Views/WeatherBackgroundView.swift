@@ -4,6 +4,7 @@ import SwiftUI
 struct WeatherBackgroundView: View {
     let weatherCode: Int?
     @State private var animationPhase = 0.0
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         ZStack {
@@ -25,79 +26,104 @@ struct WeatherBackgroundView: View {
     
     // MARK: - Background Color
     private var backgroundColor: some View {
-        Group {
+        let isDark = colorScheme == .dark
+        return Group {
             if let code = weatherCode {
                 switch code {
                 case 0, 1: // 晴朗/主要晴朗
                     LinearGradient(
-                        colors: [Color(hex: "#87CEEB"), Color(hex: "#E0F6FF")],
+                        colors: isDark 
+                            ? [Color(hex: "#1a365d"), Color(hex: "#2d3748")]
+                            : [Color(hex: "#87CEEB"), Color(hex: "#E0F6FF")],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 case 2: // 部分多云
                     LinearGradient(
-                        colors: [Color(hex: "#B0C4DE"), Color(hex: "#E8F0F8")],
+                        colors: isDark 
+                            ? [Color(hex: "#2d3748"), Color(hex: "#4a5568")]
+                            : [Color(hex: "#B0C4DE"), Color(hex: "#E8F0F8")],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 case 3: // 多云
                     LinearGradient(
-                        colors: [Color(hex: "#708090"), Color(hex: "#A8B8C8")],
+                        colors: isDark 
+                            ? [Color(hex: "#1a202c"), Color(hex: "#4a5568")]
+                            : [Color(hex: "#708090"), Color(hex: "#A8B8C8")],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 case 45, 48: // 雾/雾凇
                     LinearGradient(
-                        colors: [Color(hex: "#D3D3D3"), Color(hex: "#F0F0F0")],
+                        colors: isDark 
+                            ? [Color(hex: "#2d3748"), Color(hex: "#4a5568")]
+                            : [Color(hex: "#D3D3D3"), Color(hex: "#F0F0F0")],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 case 51, 53, 55, 56, 57: // 毛毛雨/冻毛毛雨
                     LinearGradient(
-                        colors: [Color(hex: "#5F9EA0"), Color(hex: "#B0C4DE")],
+                        colors: isDark 
+                            ? [Color(hex: "#1a365d"), Color(hex: "#2d3748")]
+                            : [Color(hex: "#5F9EA0"), Color(hex: "#B0C4DE")],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 case 61, 63, 65, 66, 67: // 雨/冻雨
                     LinearGradient(
-                        colors: [Color(hex: "#4682B4"), Color(hex: "#708090")],
+                        colors: isDark 
+                            ? [Color(hex: "#1a202c"), Color(hex: "#2d3748")]
+                            : [Color(hex: "#4682B4"), Color(hex: "#708090")],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 case 71, 73, 75, 77: // 雪/雪粒
                     LinearGradient(
-                        colors: [Color(hex: "#B0E0E6"), Color(hex: "#F0F8FF")],
+                        colors: isDark 
+                            ? [Color(hex: "#1a365d"), Color(hex: "#2d3748")]
+                            : [Color(hex: "#B0E0E6"), Color(hex: "#F0F8FF")],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 case 80, 81, 82: // 阵雨
                     LinearGradient(
-                        colors: [Color(hex: "#4169E1"), Color(hex: "#6495ED")],
+                        colors: isDark 
+                            ? [Color(hex: "#1a202c"), Color(hex: "#2d3748")]
+                            : [Color(hex: "#4169E1"), Color(hex: "#6495ED")],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 case 85, 86: // 阵雪
                     LinearGradient(
-                        colors: [Color(hex: "#87CEFA"), Color(hex: "#E0F6FF")],
+                        colors: isDark 
+                            ? [Color(hex: "#1a365d"), Color(hex: "#2d3748")]
+                            : [Color(hex: "#87CEFA"), Color(hex: "#E0F6FF")],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 case 95, 96, 99: // 雷雨
                     LinearGradient(
-                        colors: [Color(hex: "#2F4F4F"), Color(hex: "#4A5568")],
+                        colors: isDark 
+                            ? [Color(hex: "#0d1117"), Color(hex: "#21262d")]
+                            : [Color(hex: "#2F4F4F"), Color(hex: "#4A5568")],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 default:
                     LinearGradient(
-                        colors: [Color(hex: "#87CEEB"), Color(hex: "#E0F6FF")],
+                        colors: isDark 
+                            ? [Color(hex: "#1a365d"), Color(hex: "#2d3748")]
+                            : [Color(hex: "#87CEEB"), Color(hex: "#E0F6FF")],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 }
             } else {
                 LinearGradient(
-                    colors: [Color(hex: "#87CEEB"), Color(hex: "#E0F6FF")],
+                    colors: isDark 
+                        ? [Color(hex: "#1a365d"), Color(hex: "#2d3748")]
+                        : [Color(hex: "#87CEEB"), Color(hex: "#E0F6FF")],
                     startPoint: .top,
                     endPoint: .bottom
                 )

@@ -259,7 +259,7 @@ struct PresetCityPickerView: View {
                 }
                 isSearching = true
                 searchTask = Task {
-                    try? await Task.sleep(for: .milliseconds(400))
+                    try? await Task.sleep(for: .milliseconds(550))
                     guard !Task.isCancelled else { return }
                     let results = await CityDataService.searchGlobal(query: newValue)
                     guard !Task.isCancelled else { return }

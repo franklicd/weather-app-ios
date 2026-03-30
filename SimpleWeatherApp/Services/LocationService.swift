@@ -2,7 +2,7 @@ import Foundation
 import CoreLocation
 
 @MainActor
-final class LocationService: NSObject, @unchecked Sendable, @preconcurrency LocationServiceProtocol {
+final class LocationService: NSObject, @unchecked Sendable {
     var currentLocation: CLLocation?
     var authorizationStatus: CLAuthorizationStatus = .notDetermined
     var locationName: String = "当前位置"
@@ -12,8 +12,7 @@ final class LocationService: NSObject, @unchecked Sendable, @preconcurrency Loca
     override init() {
         super.init()
         manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyThreeKilometers // 优化位置精度策略，平衡精度和电量
-        manager.distanceFilter = 1000 // 至少移动 1000 米才更新
+        manager.desiredAccuracy = kCLLocationAccuracyKilometer
         authorizationStatus = manager.authorizationStatus
     }
 
@@ -38,7 +37,6 @@ final class LocationService: NSObject, @unchecked Sendable, @preconcurrency Loca
                 if let placemark = placemarks.first {
                     locationName = placemark.locality
                         ?? placemark.administrativeArea
-                        ?? placemark.country
                         ?? "当前位置"
                 }
             } catch {

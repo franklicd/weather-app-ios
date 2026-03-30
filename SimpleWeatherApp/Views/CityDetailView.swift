@@ -67,8 +67,21 @@ struct CityWeatherDetailView: View {
         ScrollView {
             VStack(spacing: 16) {
                 if city.isLoading {
-                    ProgressView("加载天气数据...")
-                        .padding(.top, 60)
+                    // 增强的加载状态反馈
+                    VStack(spacing: 24) {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                            .padding(.top, 80)
+                        
+                        VStack(spacing: 12) {
+                            Text("正在获取天气数据...")
+                                .font(.headline)
+                            
+                            Text("请稍候")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 } else if let weather = city.weather {
                     // 网络更新失败横幅（保留旧数据时显示）
                     if let err = city.fetchError {
