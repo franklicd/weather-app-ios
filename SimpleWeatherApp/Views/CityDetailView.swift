@@ -10,7 +10,7 @@ struct CityDetailView: View {
                 if let city = store.selectedCity {
                     CityWeatherDetailView(city: city) {
                         if let i = store.cities.firstIndex(where: { $0.id == city.id }) {
-                            await store.fetchWeather(at: i)
+                            await store.fetchWeather(at: i, sendNotification: true)
                         }
                     }
                 } else {
@@ -27,7 +27,7 @@ struct CityDetailView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     if let idx = store.cities.firstIndex(where: { $0.id == store.selectedCity?.id }) {
                         Button {
-                            Task { await store.fetchWeather(at: idx) }
+                            Task { await store.fetchWeather(at: idx, sendNotification: true) }
                         } label: {
                             Image(systemName: "arrow.clockwise")
                         }
@@ -49,92 +49,123 @@ struct CityDetailView: View {
 struct CityWeatherDetailView: View {
     let city: CityWeather
     let onRefresh: () async -> Void
+    @State private var contentAppear = false
+    @State private var loadingAppear = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            // 顶部告警横幅（始终在最顶部）
-            if !city.alerts.isEmpty {
-                AlertBannerView(alerts: city.alerts)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
-            }
-            
-            ScrollView {
-                VStack(spacing: 16) {
-                    if city.isLoading {
-                        // 品牌化加载动画
-                        WeatherLoadingView()
-                            .padding(.top, 60)
-                    } else if let weather = city.weather {
-                        // 网络更新失败横幅（保留旧数据时显示）
-                        if let err = city.fetchError {
-                            Label(err, systemImage: "wifi.exclamationmark")
-                                .font(.caption)
-                                .foregroundStyle(.orange)
-                                .padding(10)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
-                        }
-
-                        // 主温度卡片
-                        MainWeatherCard(weather: weather.current, alertCount: city.alerts.count)
-
-                        // 预警横幅（保留在详情区域）
-                        if !city.alerts.isEmpty {
-                            AlertBannerSection(alerts: city.alerts)
-                        }
-
-                        // 小时预报
-                        HourlyForecastSection(hourly: weather.hourly)
-
-                        // 详细数据
-                        WeatherDetailGrid(weather: weather.current)
-
-                        // AQI & UV 卡片
-                        if let aq = city.airQuality {
-                            AirQualityCard(aq: aq)
-                        }
-
-                        // 7天预报
-                        ForecastSection(daily: weather.daily)
-
-                        if let updated = city.lastUpdated {
-                            Text("更新于 \(updated.formatted(.dateTime.hour().minute()))")
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
-                                .padding(.bottom, 8)
-                        }
-                    } else if let err = city.fetchError {
-                        // 无数据且有错误时显示重试界面
-                        VStack(spacing: 20) {
-                            Image(systemName: "wifi.exclamationmark")
-                                .font(.system(size: 52))
-                                .foregroundStyle(.orange)
-                            Text("加载失败")
-                                .font(.title3)
-                                .fontWeight(.medium)
-                            Text(err)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                        }
-                        .padding(.horizontal, 32)
+        ScrollView {
+            VStack(spacing: 16) {
+                if city.isLoading {
+                    // 品牌化加载动画
+                    WeatherLoadingView()
                         .padding(.top, 60)
-                    } else {
-                        ContentUnavailableView(
-                            "暂无数据",
-                            systemImage: "wifi.slash",
-                            description: Text("无法获取天气数据，请下拉刷新")
-                        )
-                        .padding(.top, 60)
+                        .opacity(loadingAppear ? 1 : 0)
+                        .scaleEffect(loadingAppear ? 1 : 0.8)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: loadingAppear)
+                } else if let weather = city.weather {
+                    // 网络更新失败横幅（保留旧数据时显示）
+                    if let err = city.fetchError {
+                        Label(err, systemImage: "wifi.exclamationmark")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                            .padding(10)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+                            .opacity(contentAppear ? 1 : 0)
+                            .offset(y: contentAppear ? 0 : 20)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.05), value: contentAppear)
                     }
+
+                    // 主温度卡片
+                    MainWeatherCard(weather: weather.current, alertCount: city.alerts.count)
+                        .opacity(contentAppear ? 1 : 0)
+                        .offset(y: contentAppear ? 0 : 30)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.15), value: contentAppear)
+
+                    // 预警横幅（保留在详情区域）
+                    if !city.alerts.isEmpty {
+                        AlertBannerSection(alerts: city.alerts)
+                            .opacity(contentAppear ? 1 : 0)
+                            .offset(y: contentAppear ? 0 : 25)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3), value: contentAppear)
+                    }
+
+                    // 小时预报
+                    HourlyForecastSection(hourly: weather.hourly)
+                        .opacity(contentAppear ? 1 : 0)
+                        .offset(y: contentAppear ? 0 : 30)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.4), value: contentAppear)
+
+                    // 详细数据
+                    WeatherDetailGrid(weather: weather.current)
+                        .opacity(contentAppear ? 1 : 0)
+                        .offset(y: contentAppear ? 0 : 25)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.5), value: contentAppear)
+
+                    // AQI & UV 卡片
+                    if let aq = city.airQuality {
+                        AirQualityCard(aq: aq)
+                            .opacity(contentAppear ? 1 : 0)
+                            .offset(y: contentAppear ? 0 : 25)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.6), value: contentAppear)
+                    }
+
+                    // 7天预报
+                    ForecastSection(daily: weather.daily)
+                        .opacity(contentAppear ? 1 : 0)
+                        .offset(y: contentAppear ? 0 : 30)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.7), value: contentAppear)
+
+                    if let updated = city.lastUpdated {
+                        Text("更新于 \(updated.formatted(.dateTime.hour().minute()))")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                            .padding(.bottom, 8)
+                            .opacity(contentAppear ? 1 : 0)
+                            .animation(.easeInOut.delay(0.8), value: contentAppear)
+                    }
+                } else if let err = city.fetchError {
+                    // 无数据且有错误时显示重试界面
+                    VStack(spacing: 20) {
+                        Image(systemName: "wifi.exclamationmark")
+                            .font(.system(size: 52))
+                            .foregroundStyle(.orange)
+                        Text("加载失败")
+                            .font(.title3)
+                            .fontWeight(.medium)
+                        Text(err)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.horizontal, 32)
+                    .padding(.top, 60)
+                    .opacity(contentAppear ? 1 : 0)
+                    .scaleEffect(contentAppear ? 1 : 0.8)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: contentAppear)
+                } else {
+                    ContentUnavailableView(
+                        "暂无数据",
+                        systemImage: "wifi.slash",
+                        description: Text("无法获取天气数据，请下拉刷新")
+                    )
+                    .padding(.top, 60)
+                    .opacity(contentAppear ? 1 : 0)
+                    .scaleEffect(contentAppear ? 1 : 0.8)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: contentAppear)
                 }
-                .padding()
             }
-            .refreshable {
-                await onRefresh()
+            .padding()
+        }
+        .refreshable {
+            await onRefresh()
+        }
+        .background(.clear)
+        .onAppear {
+            loadingAppear = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                contentAppear = true
             }
-            .background(.clear)
         }
     }
 }
@@ -144,12 +175,19 @@ struct CityWeatherDetailView: View {
 struct MainWeatherCard: View {
     let weather: CurrentWeather
     let alertCount: Int
+    @State private var breathe = false
 
     var body: some View {
         VStack(spacing: 12) {
             ZStack(alignment: .topTrailing) {
                 DynamicWeatherIcon(weatherCode: weather.weather_code)
                     .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+                    .scaleEffect(breathe ? 1.08 : 1.0)
+                    .animation(
+                        .easeInOut(duration: 2.5)
+                        .repeatForever(autoreverses: true),
+                        value: breathe
+                    )
                 
                 if alertCount > 0 {
                     ZStack {
@@ -161,6 +199,7 @@ struct MainWeatherCard: View {
                                     endPoint: .bottomTrailing
                                 )
                             )
+                            .symbolEffect(.pulse, options: .repeating, isActive: alertCount > 0)
                         
                         Text("\(alertCount)")
                             .font(.system(size: 12, weight: .bold))
@@ -199,6 +238,9 @@ struct MainWeatherCard: View {
                         .stroke(Color.white.opacity(0.2), lineWidth: 1)
                 )
         )
+        .onAppear {
+            breathe = true
+        }
     }
 }
 
@@ -206,10 +248,11 @@ struct MainWeatherCard: View {
 
 struct AlertBannerSection: View {
     let alerts: [WeatherAlert]
+    @State private var appear = false
 
     var body: some View {
         VStack(spacing: 12) {
-            ForEach(alerts) { alert in
+            ForEach(Array(alerts.enumerated()), id: \.element.id) { index, alert in
                 HStack(spacing: 16) {
                     // 左侧图标和渐变背景
                     ZStack {
@@ -226,6 +269,7 @@ struct AlertBannerSection: View {
                         Image(systemName: alert.icon)
                             .font(.system(size: 24, weight: .bold))
                             .foregroundStyle(.white)
+                            .symbolEffect(.bounce.up, options: .speed(0.6), value: appear)
                     }
                     .shadow(color: alert.severity.color.opacity(0.4), radius: 8, x: 0, y: 4)
 
@@ -252,6 +296,7 @@ struct AlertBannerSection: View {
                                         )
                                 )
                                 .foregroundStyle(.white)
+                                .symbolEffect(.pulse, options: .repeating, isActive: true)
                         }
                         Text(alert.description)
                             .font(.subheadline)
@@ -288,7 +333,17 @@ struct AlertBannerSection: View {
                                 )
                         )
                 )
+                .opacity(appear ? 1 : 0)
+                .offset(y: appear ? 0 : -20)
+                .animation(
+                    .spring(response: 0.5, dampingFraction: 0.8)
+                    .delay(Double(index) * 0.12),
+                    value: appear
+                )
             }
+        }
+        .onAppear {
+            appear = true
         }
     }
 }
@@ -297,20 +352,29 @@ struct AlertBannerSection: View {
 
 struct WeatherDetailGrid: View {
     let weather: CurrentWeather
+    @State private var appear = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("详细信息")
                 .font(.headline)
                 .fontWeight(.semibold)
+                .opacity(appear ? 1 : 0)
+                .offset(x: appear ? 0 : -20)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: appear)
             
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                DetailCell(icon: "humidity.fill", label: "湿度", value: "\(weather.relative_humidity_2m)%", color: .blue)
-                DetailCell(icon: "wind", label: "风速", value: "\(Int(weather.wind_speed_10m)) km/h", color: .teal)
-                if let vis = weather.visibility {
-                    DetailCell(icon: "eye.fill", label: "能见度", value: "\(Int(vis / 1000)) km", color: .purple)
+                ForEach(Array(detailCells.enumerated()), id: \.offset) { index, cell in
+                    DetailCell(icon: cell.icon, label: cell.label, value: cell.value, color: cell.color)
+                        .opacity(appear ? 1 : 0)
+                        .scaleEffect(appear ? 1 : 0.8)
+                        .offset(y: appear ? 0 : 20)
+                        .animation(
+                            .spring(response: 0.5, dampingFraction: 0.8)
+                            .delay(Double(index) * 0.12),
+                            value: appear
+                        )
                 }
-                DetailCell(icon: "thermometer.medium", label: "体感温度", value: "\(Int(weather.apparent_temperature))°C", color: .orange)
             }
         }
         .padding(20)
@@ -324,6 +388,21 @@ struct WeatherDetailGrid: View {
                         .stroke(Color.white.opacity(0.15), lineWidth: 1)
                 )
         )
+        .onAppear {
+            appear = true
+        }
+    }
+    
+    private var detailCells: [(icon: String, label: String, value: String, color: Color)] {
+        var cells: [(icon: String, label: String, value: String, color: Color)] = [
+            ("humidity.fill", "湿度", "\(weather.relative_humidity_2m)%", .blue),
+            ("wind", "风速", "\(Int(weather.wind_speed_10m)) km/h", .teal)
+        ]
+        if let vis = weather.visibility {
+            cells.append(("eye.fill", "能见度", "\(Int(vis / 1000)) km", .purple))
+        }
+        cells.append(("thermometer.medium", "体感温度", "\(Int(weather.apparent_temperature))°C", .orange))
+        return cells
     }
 }
 
@@ -582,12 +661,16 @@ struct UVGaugeView: View {
 
 struct HourlyForecastSection: View {
     let hourly: HourlyForecast?
+    @State private var appear = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("24小时预报")
                 .font(.headline)
                 .fontWeight(.semibold)
+                .opacity(appear ? 1 : 0)
+                .offset(x: appear ? 0 : -20)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: appear)
             
             if hourly != nil {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -599,10 +682,21 @@ struct HourlyForecastSection: View {
                                 weatherCode: item.weatherCode,
                                 isNow: index == 0
                             )
+                            .opacity(appear ? 1 : 0)
+                            .scaleEffect(appear ? 1 : 0.6)
+                            .offset(y: appear ? 0 : 15)
+                            .animation(
+                                .spring(response: 0.4, dampingFraction: 0.8)
+                                .delay(Double(index) * 0.03),
+                                value: appear
+                            )
                         }
                     }
                     .padding(.horizontal, 4)
                 }
+                .opacity(appear ? 1 : 0)
+                .scaleEffect(appear ? 1 : 0.95)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appear)
             } else {
                 // 占位视图，当没有小时预报数据时显示
                 HStack(spacing: 16) {
@@ -623,6 +717,9 @@ struct HourlyForecastSection: View {
                         .stroke(Color.white.opacity(0.15), lineWidth: 1)
                 )
         )
+        .onAppear {
+            appear = true
+        }
     }
     
     struct HourlyItem {
@@ -730,15 +827,20 @@ struct HourlyForecastPlaceholder: View {
 
 struct ForecastSection: View {
     let daily: DailyForecast
+    @State private var appear = false
+    @State private var progressAppear = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("7天预报")
                 .font(.headline)
                 .fontWeight(.semibold)
+                .opacity(appear ? 1 : 0)
+                .offset(x: appear ? 0 : -20)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: appear)
 
             VStack(spacing: 0) {
-                ForEach(forecastItems, id: \.date) { item in
+                ForEach(Array(forecastItems.enumerated()), id: \.element.date) { index, item in
                     HStack(spacing: 16) {
                         // 日期
                         Text(item.date)
@@ -761,6 +863,7 @@ struct ForecastSection: View {
                             Image(systemName: WeatherCode.icon(for: item.code))
                                 .font(.system(size: 20, weight: .medium))
                                 .foregroundStyle(.orange)
+                                .symbolEffect(.bounce.up, options: .speed(0.5), value: appear)
                         }
                         
                         // 天气描述
@@ -799,8 +902,13 @@ struct ForecastSection: View {
                                                 endPoint: .trailing
                                             )
                                         )
-                                        .frame(width: geometry.size.width * (normalizedMax - normalizedMin), height: 6)
-                                        .offset(x: geometry.size.width * normalizedMin)
+                                        .frame(width: progressAppear ? max(geometry.size.width * (normalizedMax - normalizedMin), 8) : 0, height: 6)
+                                        .offset(x: progressAppear ? geometry.size.width * normalizedMin : 0)
+                                        .animation(
+                                            .spring(response: 0.8, dampingFraction: 0.7)
+                                            .delay(0.1 + Double(index) * 0.05),
+                                            value: progressAppear
+                                        )
                                 }
                             }
                             .frame(width: 80, height: 6)
@@ -812,10 +920,19 @@ struct ForecastSection: View {
                         }
                     }
                     .padding(.vertical, 12)
+                    .opacity(appear ? 1 : 0)
+                    .offset(x: appear ? 0 : -30)
+                    .animation(
+                        .spring(response: 0.5, dampingFraction: 0.8)
+                        .delay(Double(index) * 0.08),
+                        value: appear
+                    )
                     
                     if item.date != forecastItems.last?.date {
                         Divider()
                             .background(Color.white.opacity(0.15))
+                            .opacity(appear ? 1 : 0)
+                            .animation(.easeInOut.delay(Double(index) * 0.08 + 0.2), value: appear)
                     }
                 }
             }
@@ -831,6 +948,15 @@ struct ForecastSection: View {
                         .stroke(Color.white.opacity(0.15), lineWidth: 1)
                 )
         )
+        .opacity(appear ? 1 : 0)
+        .scaleEffect(appear ? 1 : 0.95)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appear)
+        .onAppear {
+            appear = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                progressAppear = true
+            }
+        }
     }
 
     struct ForecastItem {
@@ -841,29 +967,42 @@ struct ForecastSection: View {
     }
 
     var forecastItems: [ForecastItem] {
-        let count = min(7, daily.time.count)
+        // 安全地获取所有数组的最小长度，确保数据一致性
+        let maxCount = min(
+            daily.time.count,
+            daily.weather_code.count,
+            daily.temperature_2m_max.count,
+            daily.temperature_2m_min.count
+        )
+
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         let display = DateFormatter()
         display.dateFormat = "M/d E"
         display.locale = Locale(identifier: "zh_CN")
 
-        return (0..<count).compactMap { i in
-            guard i < daily.weather_code.count,
-                  i < daily.temperature_2m_max.count,
-                  i < daily.temperature_2m_min.count else { return nil }
+        var items: [ForecastItem] = []
+        for i in 0..<maxCount {
             let label: String
             if let date = formatter.date(from: daily.time[i]) {
                 label = i == 0 ? "今天" : display.string(from: date)
             } else {
                 label = daily.time[i]
             }
-            return ForecastItem(
+
+            // 安全获取温度值，如果为 nil 则跳过该日期
+            guard let maxTemp = daily.temperature_2m_max[safe: i],
+                  let minTemp = daily.temperature_2m_min[safe: i] else {
+                continue
+            }
+
+            items.append(ForecastItem(
                 date: label,
                 code: daily.weather_code[i],
-                max: daily.temperature_2m_max[i],
-                min: daily.temperature_2m_min[i]
-            )
+                max: maxTemp,
+                min: minTemp
+            ))
         }
+        return items
     }
 }

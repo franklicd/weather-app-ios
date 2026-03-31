@@ -5,6 +5,7 @@ struct CityListView: View {
     @State private var searchText = ""
     @State private var showingPresets = false
     @State private var showingLocationError = false
+    @State private var listAppear = false
 
     var searchResults: [PresetCity] {
         guard !searchText.isEmpty else { return [] }
@@ -86,18 +87,30 @@ struct CityListView: View {
                     Section {
                         ForEach(Array(store.cities.enumerated()), id: \.element.id) { idx, city in
                             Button {
-                                store.selectedIndex = idx
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                    store.selectedIndex = idx
+                                }
                             } label: {
                                 CityRowView(city: city, isSelected: store.selectedIndex == idx)
                             }
                             .buttonStyle(.plain)
                             .listRowBackground(Color.white.opacity(0.18))
+                            .opacity(listAppear ? 1 : 0)
+                            .offset(x: listAppear ? 0 : -30)
+                            .animation(
+                                .spring(response: 0.5, dampingFraction: 0.8)
+                                .delay(Double(idx) * 0.08),
+                                value: listAppear
+                            )
                         }
                         .onDelete { offsets in
                             store.removeCity(at: offsets)
                         }
                     } header: {
                         Text("已添加城市")
+                            .opacity(listAppear ? 1 : 0)
+                            .offset(x: listAppear ? 0 : -20)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.8), value: listAppear)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -140,6 +153,9 @@ struct CityListView: View {
                         await store.fetchAllWeather()
                     }
                 }
+                .onAppear {
+                    listAppear = true
+                }
         }
     }
 }
@@ -149,6 +165,7 @@ struct CityListView: View {
 struct CityRowView: View {
     let city: CityWeather
     let isSelected: Bool
+    @State private var appear = false
 
     var body: some View {
         HStack {
@@ -158,6 +175,7 @@ struct CityRowView: View {
                         Image(systemName: "location.fill")
                             .font(.caption)
                             .foregroundStyle(.blue)
+                            .symbolEffect(.bounce, value: appear)
                     }
                     Text(city.name)
                         .font(.headline)
@@ -173,6 +191,7 @@ struct CityRowView: View {
                                         endPoint: .bottomTrailing
                                     )
                                 )
+                                .symbolEffect(.pulse, options: .repeating, isActive: !city.alerts.isEmpty)
                             
                             Text("\(city.alerts.count)")
                                 .font(.system(size: 10, weight: .bold))
@@ -199,13 +218,19 @@ struct CityRowView: View {
             if city.isLoading {
                 ProgressView()
                     .scaleEffect(0.8)
+                    .scaleEffect(appear ? 1 : 0.5)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appear)
             } else if let weather = city.weather {
                 HStack(spacing: 6) {
                     Image(systemName: WeatherCode.icon(for: weather.current.weather_code))
                         .foregroundStyle(.orange)
+                        .symbolEffect(.bounce, options: .speed(0.6), value: appear)
                     Text("\(Int(weather.current.temperature_2m))°")
                         .font(.title2)
                         .fontWeight(.semibold)
+                        .opacity(appear ? 1 : 0)
+                        .offset(y: appear ? 0 : 10)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.15), value: appear)
                 }
             }
 
@@ -213,11 +238,18 @@ struct CityRowView: View {
                 Image(systemName: "checkmark")
                     .foregroundStyle(.blue)
                     .font(.caption)
+                    .symbolEffect(.bounce, value: isSelected)
+                    .transition(.scale.combined(with: .opacity))
             }
         }
         .padding(.vertical, 4)
         .background(isSelected ? Color.blue.opacity(0.08) : .clear)
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        .scaleEffect(isSelected ? 1.02 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSelected)
+        .onAppear {
+            appear = true
+        }
     }
 }
 
