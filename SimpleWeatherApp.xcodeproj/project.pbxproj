@@ -10,7 +10,6 @@
 		A001 /* WeatherApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001 /* WeatherApp.swift */; };
 		A002 /* WeatherModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F002 /* WeatherModels.swift */; };
 		A003 /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = F003 /* WeatherHelpers.swift */; };
-		A018 /* WeatherBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = F019 /* WeatherBackground.swift */; };
 		A004 /* CityDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F004 /* CityDataService.swift */; };
 		A005 /* WeatherStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F005 /* WeatherStore.swift */; };
 		A006 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F006 /* LocationService.swift */; };
@@ -44,7 +43,6 @@
 		F001 /* WeatherApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherApp.swift; sourceTree = "<group>"; };
 		F002 /* WeatherModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherModels.swift; sourceTree = "<group>"; };
 		F003 /* WeatherHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherHelpers.swift; sourceTree = "<group>"; };
-		F019 /* WeatherBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherBackground.swift; sourceTree = "<group>"; };
 		F004 /* CityDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CityDataService.swift; sourceTree = "<group>"; };
 		F005 /* WeatherStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherStore.swift; sourceTree = "<group>"; };
 		F006 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
@@ -104,7 +102,6 @@
 			isa = PBXGroup;
 			children = (
 				F003 /* WeatherHelpers.swift */,
-				F019 /* WeatherBackground.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -268,7 +265,6 @@
 				A001 /* WeatherApp.swift in Sources */,
 				A002 /* WeatherModels.swift in Sources */,
 				A003 /* WeatherHelpers.swift in Sources */,
-				A018 /* WeatherBackground.swift in Sources */,
 				A004 /* CityDataService.swift in Sources */,
 				A005 /* WeatherStore.swift in Sources */,
 				A006 /* LocationService.swift in Sources */,

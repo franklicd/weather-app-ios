@@ -1,9 +1,49 @@
 import Foundation
 import SwiftUI
 
+// MARK: - Theme Colors
+struct Theme {
+    static func textPrimary(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark ? .white.opacity(0.95) : .black.opacity(0.9)
+    }
+
+    static func textSecondary(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark ? .white.opacity(0.7) : .black.opacity(0.6)
+    }
+
+    static func textTertiary(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark ? .white.opacity(0.5) : .black.opacity(0.4)
+    }
+}
+
+// MARK: - Safe Array Subscript
+
+extension Array {
+    subscript(safe index: Index) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
+}
+
 // MARK: - Weather Code Helper
 
 enum WeatherCode {
+    static func color(for code: Int) -> Color {
+        switch code {
+        case 0:          return Color(red: 1.0, green: 0.84, blue: 0.0)  // 晴天 - 明亮金黄色
+        case 1:          return Color(red: 1.0, green: 0.76, blue: 0.15) // 大致晴朗 - 暖黄色
+        case 2:          return Color(red: 0.53, green: 0.71, blue: 0.89) // 局部多云 - 柔和蓝色
+        case 3:          return Color(red: 0.55, green: 0.58, blue: 0.65) // 阴天 - 中性灰色
+        case 45, 48:     return Color(red: 0.63, green: 0.66, blue: 0.71) // 雾 - 浅灰蓝色
+        case 51...55:    return Color(red: 0.40, green: 0.65, blue: 0.90) // 毛毛雨 - 清新蓝色
+        case 61...65:    return Color(red: 0.20, green: 0.50, blue: 0.85) // 小雨/中雨/大雨 - 经典蓝色
+        case 71...77:    return Color(red: 0.80, green: 0.90, blue: 0.98) // 雪 - 冰晶蓝白色
+        case 80...82:    return Color(red: 0.15, green: 0.40, blue: 0.75) // 阵雨 - 深邃蓝色
+        case 85, 86:     return Color(red: 0.70, green: 0.88, blue: 0.98) // 阵雪 - 浅蓝白色
+        case 95...99:    return Color(red: 0.55, green: 0.35, blue: 0.75) // 雷雨 - 神秘紫色
+        default:         return Color(red: 0.55, green: 0.58, blue: 0.65) // 未知 - 中性灰色
+        }
+    }
+
     static func description(for code: Int) -> String {
         switch code {
         case 0:          return "晴天"

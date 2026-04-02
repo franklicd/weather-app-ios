@@ -30,6 +30,19 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>需要获取您的位置来显示当地天气</string>
+	<key>NSUserNotificationAlertStyle</key>
+	<string>alert</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.lyc.weatherapp.ios.refresh</string>
+		<string>com.lyc.weatherapp.ios.weathercheck</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

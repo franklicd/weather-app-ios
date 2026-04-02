@@ -2,10 +2,15 @@ import SwiftUI
 
 struct CityListView: View {
     @Environment(WeatherStore.self) private var store
+    @Environment(\.colorScheme) private var colorScheme
     @State private var searchText = ""
     @State private var showingPresets = false
     @State private var showingLocationError = false
     @State private var listAppear = false
+
+    private var rowBackground: Color {
+        colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.05)
+    }
 
     var searchResults: [PresetCity] {
         guard !searchText.isEmpty else { return [] }
@@ -32,7 +37,7 @@ struct CityListView: View {
                                 }
                             }
                         }
-                        .listRowBackground(Color.white.opacity(0.18))
+                        .listRowBackground(rowBackground)
                     }
 
                     // 搜索结果（输入时显示）
@@ -41,7 +46,7 @@ struct CityListView: View {
                             if searchResults.isEmpty {
                                 Text("未找到「\(searchText)」")
                                     .foregroundStyle(.secondary)
-                                    .listRowBackground(Color.white.opacity(0.18))
+                                    .listRowBackground(rowBackground)
                             } else {
                                 ForEach(searchResults, id: \.name) { preset in
                                     let alreadyAdded = store.cities.contains { $0.name == preset.name }
@@ -63,24 +68,12 @@ struct CityListView: View {
                                                 .foregroundStyle(alreadyAdded ? .green : .blue)
                                         }
                                     }
-                                    .listRowBackground(Color.white.opacity(0.18))
+                                    .listRowBackground(rowBackground)
                                 }
                             }
                         } header: {
                             Text(searchResults.isEmpty ? "搜索结果" : "点击城市名称可添加")
                         }
-                    }
-
-                    // GPS 当前位置
-                    Section {
-                        Button {
-                            store.addCurrentLocation()
-                            showingLocationError = store.locationError != nil
-                        } label: {
-                            Label("使用当前位置", systemImage: "location.fill")
-                                .foregroundStyle(.blue)
-                        }
-                        .listRowBackground(Color.white.opacity(0.18))
                     }
 
                     // 已添加城市
@@ -94,7 +87,7 @@ struct CityListView: View {
                                 CityRowView(city: city, isSelected: store.selectedIndex == idx)
                             }
                             .buttonStyle(.plain)
-                            .listRowBackground(Color.white.opacity(0.18))
+                            .listRowBackground(rowBackground)
                             .opacity(listAppear ? 1 : 0)
                             .offset(x: listAppear ? 0 : -30)
                             .animation(
@@ -149,8 +142,13 @@ struct CityListView: View {
                     showingLocationError = newValue != nil
                 }
                 .task {
-                    if store.cities.allSatisfy({ $0.weather == nil }) {
-                        await store.fetchAllWeather()
+                    // 预加载选中城市的数据（如果没有数据或超过15分钟）
+                    if let selectedCity = store.selectedCity {
+                        if selectedCity.weather == nil ||
+                           selectedCity.lastUpdated == nil ||
+                           Date().timeIntervalSince(selectedCity.lastUpdated!) > 15 * 60 {
+                            await store.fetchWeather(at: store.selectedIndex)
+                        }
                     }
                 }
                 .onAppear {
@@ -166,6 +164,11 @@ struct CityRowView: View {
     let city: CityWeather
     let isSelected: Bool
     @State private var appear = false
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var highPriorityAlerts: [WeatherAlert] {
+        city.alerts.filter { $0.severity == .high || $0.severity == .extreme }
+    }
 
     var body: some View {
         HStack {
@@ -179,9 +182,10 @@ struct CityRowView: View {
                     }
                     Text(city.name)
                         .font(.headline)
-                    
-                    // 告警数量徽章
-                    if !city.alerts.isEmpty {
+                        .foregroundStyle(Theme.textPrimary(for: colorScheme))
+
+                    // 告警数量徽章（只显示 high 和 extreme 级别）
+                    if !highPriorityAlerts.isEmpty {
                         ZStack {
                             Capsule()
                                 .fill(
@@ -191,9 +195,9 @@ struct CityRowView: View {
                                         endPoint: .bottomTrailing
                                     )
                                 )
-                                .symbolEffect(.pulse, options: .repeating, isActive: !city.alerts.isEmpty)
-                            
-                            Text("\(city.alerts.count)")
+                                .symbolEffect(.pulse, options: .repeating, isActive: !highPriorityAlerts.isEmpty)
+
+                            Text("\(highPriorityAlerts.count)")
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 6)
@@ -205,11 +209,11 @@ struct CityRowView: View {
                 if let weather = city.weather {
                     Text(WeatherCode.description(for: weather.current.weather_code))
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.textSecondary(for: colorScheme))
                 } else if city.isLoading {
                     Text("加载中...")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.textSecondary(for: colorScheme))
                 }
             }
 
@@ -223,11 +227,12 @@ struct CityRowView: View {
             } else if let weather = city.weather {
                 HStack(spacing: 6) {
                     Image(systemName: WeatherCode.icon(for: weather.current.weather_code))
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(WeatherCode.color(for: weather.current.weather_code))
                         .symbolEffect(.bounce, options: .speed(0.6), value: appear)
                     Text("\(Int(weather.current.temperature_2m))°")
                         .font(.title2)
                         .fontWeight(.semibold)
+                        .foregroundStyle(Theme.textPrimary(for: colorScheme))
                         .opacity(appear ? 1 : 0)
                         .offset(y: appear ? 0 : 10)
                         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.15), value: appear)

@@ -6,18 +6,27 @@ import Observation
 @MainActor
 @Observable
 class WeatherStore {
+    static let shared = WeatherStore()
+
     var cities: [CityWeather] = []
     var selectedIndex: Int = 0 {
-        didSet {
-            // Pre-fetch weather data for the selected city if needed
-            if cities.indices.contains(selectedIndex), cities[selectedIndex].weather == nil {
-                Task { await fetchWeather(at: selectedIndex) }
+        willSet {
+            // When user selects a new city, immediately start pre-loading its data
+            // 并为当前选中的城市发送通知
+            if cities.indices.contains(newValue) {
+                // If data already exists, no need to load again
+                if cities[newValue].weather == nil ||
+                   cities[newValue].lastUpdated == nil ||
+                   Date().timeIntervalSince(cities[newValue].lastUpdated!) > 15 * 60 {
+                    Task { await fetchWeather(at: newValue, sendNotification: true) }
+                }
             }
         }
     }
     var locationError: String?
 
     private let locationService = LocationService()
+    private let notificationManager = NotificationManager.shared
 
     var selectedCity: CityWeather? {
         guard cities.indices.contains(selectedIndex) else { return nil }
@@ -27,6 +36,7 @@ class WeatherStore {
     init() {
         cities = CityDataService.loadCities()
         startAutoRefresh()
+        notificationManager.requestNotificationPermission()
     }
 
     // 仅当尚未有当前定位城市时才自动获取定位
@@ -75,12 +85,14 @@ class WeatherStore {
 
     // MARK: - Weather Fetching
 
-    func fetchWeather(at index: Int) async {
+    func fetchWeather(at index: Int, sendNotification: Bool = false) async {
         guard cities.indices.contains(index) else { return }
         cities[index].isLoading = true
         cities[index].fetchError = nil
         let lat = cities[index].lat
         let lon = cities[index].lon
+        let cityId = cities[index].id
+        let cityName = cities[index].name
 
         async let weatherResult = fetchWeatherData(lat: lat, lon: lon)
         async let aqResult = fetchAirQuality(lat: lat, lon: lon)
@@ -91,7 +103,14 @@ class WeatherStore {
         cities[index].weather = weather
         cities[index].airQuality = aq
         if let weather {
-            cities[index].alerts = AlertGenerator.generate(from: weather, airQuality: aq)
+            let newAlerts = AlertGenerator.generate(from: weather, airQuality: aq)
+            cities[index].alerts = newAlerts
+            // 只有在需要发送通知且是当前选中的城市时才发送推送
+            if sendNotification && index == selectedIndex {
+                for alert in newAlerts {
+                    notificationManager.sendWeatherAlertIfNeeded(cityId: cityId, cityName: cityName, alert: alert)
+                }
+            }
         }
         if weather == nil {
             cities[index].fetchError = "网络请求失败，请检查网络连接后下拉刷新"
@@ -105,6 +124,17 @@ class WeatherStore {
         await withTaskGroup(of: Void.self) { group in
             for index in cities.indices {
                 group.addTask { await self.fetchWeather(at: index) }
+            }
+        }
+    }
+
+    // 后台刷新所有城市（用于后台任务）
+    func fetchAllWeatherBackground() async {
+        await withTaskGroup(of: Void.self) { group in
+            for index in cities.indices {
+                // 后台刷新时，只有当前选中的城市才发送通知
+                let shouldNotify = (index == selectedIndex)
+                group.addTask { await self.fetchWeather(at: index, sendNotification: shouldNotify) }
             }
         }
     }

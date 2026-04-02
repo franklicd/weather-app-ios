@@ -336,20 +336,18 @@ struct AnimatedSunIcon: View {
 // MARK: - 温度动画视图
 struct TemperatureView: View {
     let temperature: Double
-    @State private var displayedTemp: Double = -1000  // 初始值设为不可能的温度
+    @State private var displayedTemp: Double
+    
+    init(temperature: Double) {
+        self.temperature = temperature
+        // 直接使用传入的温度作为初始值，避免-1000度的跳变
+        self._displayedTemp = State(initialValue: temperature)
+    }
     
     var body: some View {
         Text("\(Int(displayedTemp))°C")
             .font(.system(size: 72, weight: .thin))
             .contentTransition(.numericText(value: displayedTemp))
-            .onAppear {
-                // 首次出现时的动画
-                if displayedTemp == -1000 {
-                    withAnimation(.spring(duration: 0.8)) {
-                        displayedTemp = temperature
-                    }
-                }
-            }
             .onChange(of: temperature) { oldValue, newValue in
                 // 温度变化时的动画
                 withAnimation(.spring(duration: 0.5)) {

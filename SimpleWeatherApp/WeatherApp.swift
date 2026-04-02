@@ -2,18 +2,26 @@ import SwiftUI
 
 @main
 struct SimpleWeatherApp: App {
-    @State private var store = WeatherStore()
+    @State private var store = WeatherStore.shared
     @Environment(\.scenePhase) private var scenePhase
+
+    init() {
+        // 注册后台任务
+        BackgroundTaskManager.shared.registerBackgroundTasks()
+    }
 
     var body: some Scene {
         WindowGroup {
             SplashScreenView()
                 .environment(store)
         }
-        .onChange(of: scenePhase) { _, newPhase in
+        .onChange(of: scenePhase) { newPhase in
             if newPhase == .active {
                 store.startLocationOnLaunchIfNeeded()
                 Task { await store.fetchAllWeather() }
+            } else if newPhase == .background {
+                // App 进入后台时调度后台任务
+                BackgroundTaskManager.shared.applicationDidEnterBackground()
             }
         }
     }
@@ -43,6 +51,6 @@ struct ContentView: View {
     }
 
     private var alertBadge: Int {
-        store.cities.reduce(0) { $0 + $1.alerts.filter { $0.severity == .high || $0.severity == .extreme }.count }
+        store.selectedCity?.alerts.filter { $0.severity == .high || $0.severity == .extreme }.count ?? 0
     }
 }

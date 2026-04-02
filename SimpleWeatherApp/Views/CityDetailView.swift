@@ -176,6 +176,7 @@ struct MainWeatherCard: View {
     let weather: CurrentWeather
     let alertCount: Int
     @State private var breathe = false
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 12) {
@@ -188,7 +189,7 @@ struct MainWeatherCard: View {
                         .repeatForever(autoreverses: true),
                         value: breathe
                     )
-                
+
                 if alertCount > 0 {
                     ZStack {
                         Capsule()
@@ -200,7 +201,7 @@ struct MainWeatherCard: View {
                                 )
                             )
                             .symbolEffect(.pulse, options: .repeating, isActive: alertCount > 0)
-                        
+
                         Text("\(alertCount)")
                             .font(.system(size: 12, weight: .bold))
                             .foregroundStyle(.white)
@@ -218,11 +219,11 @@ struct MainWeatherCard: View {
             Text(WeatherCode.description(for: weather.weather_code))
                 .font(.title3)
                 .fontWeight(.semibold)
-                .foregroundStyle(.primary.opacity(0.9))
+                .foregroundStyle(Theme.textPrimary(for: colorScheme))
 
             Text("体感温度 \(Int(weather.apparent_temperature))°C")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.textSecondary(for: colorScheme))
                 .padding(.top, 4)
         }
         .frame(maxWidth: .infinity)
@@ -353,12 +354,14 @@ struct AlertBannerSection: View {
 struct WeatherDetailGrid: View {
     let weather: CurrentWeather
     @State private var appear = false
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("详细信息")
                 .font(.headline)
                 .fontWeight(.semibold)
+                .foregroundStyle(Theme.textPrimary(for: colorScheme))
                 .opacity(appear ? 1 : 0)
                 .offset(x: appear ? 0 : -20)
                 .animation(.spring(response: 0.5, dampingFraction: 0.8), value: appear)
@@ -411,6 +414,7 @@ struct DetailCell: View {
     let label: String
     let value: String
     let color: Color
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 12) {
@@ -425,23 +429,23 @@ struct DetailCell: View {
                         )
                     )
                     .frame(width: 50, height: 50)
-                
+
                 Image(systemName: icon)
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(color)
             }
             .shadow(color: color.opacity(0.3), radius: 6, x: 0, y: 3)
-            
+
             // 数值和标签
             VStack(spacing: 4) {
                 Text(value)
                     .font(.title3)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                
+                    .foregroundStyle(Theme.textPrimary(for: colorScheme))
+
                 Text(label)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.textSecondary(for: colorScheme))
             }
         }
         .padding(.vertical, 16)
@@ -458,12 +462,14 @@ struct DetailCell: View {
 
 struct AirQualityCard: View {
     let aq: AirQualityData
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("空气质量 & 紫外线")
                 .font(.headline)
                 .fontWeight(.semibold)
+                .foregroundStyle(Theme.textPrimary(for: colorScheme))
 
             HStack(spacing: 16) {
                 if let aqi = aq.us_aqi {
@@ -500,19 +506,20 @@ struct AirQualityCard: View {
 struct PollutantRow: View {
     let label: String
     let value: String
-    
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         HStack {
             Text(label)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
-            
+                .foregroundStyle(Theme.textSecondary(for: colorScheme))
+
             Spacer()
-            
+
             Text(value)
                 .font(.subheadline)
                 .fontWeight(.medium)
-                .foregroundStyle(.primary)
+                .foregroundStyle(Theme.textPrimary(for: colorScheme))
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
@@ -525,10 +532,11 @@ struct PollutantRow: View {
 
 struct AQIGaugeView: View {
     let aqi: Int
-    
+    @Environment(\.colorScheme) private var colorScheme
+
     private let aqiColor: Color
     private let aqiLevel: String
-    
+
     init(aqi: Int) {
         self.aqi = aqi
         self.aqiColor = AirQualityHelper.aqiColor(for: aqi)
@@ -543,7 +551,7 @@ struct AQIGaugeView: View {
                 Circle()
                     .stroke(Color.white.opacity(0.15), lineWidth: 8)
                     .frame(width: 80, height: 80)
-                
+
                 // 进度圆环
                 Circle()
                     .trim(from: 0, to: min(Double(aqi) / 300.0, 1.0))
@@ -557,7 +565,7 @@ struct AQIGaugeView: View {
                     )
                     .frame(width: 80, height: 80)
                     .rotationEffect(.degrees(-90))
-                
+
                 // AQI数值
                 VStack(spacing: 2) {
                     Text("\(aqi)")
@@ -565,10 +573,10 @@ struct AQIGaugeView: View {
                         .foregroundStyle(aqiColor)
                     Text("AQI")
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.textSecondary(for: colorScheme))
                 }
             }
-            
+
             // 等级标签
             Text(aqiLevel)
                 .font(.caption)
@@ -592,10 +600,11 @@ struct AQIGaugeView: View {
 
 struct UVGaugeView: View {
     let uv: Double
-    
+    @Environment(\.colorScheme) private var colorScheme
+
     private let uvColor: Color
     private let uvLevel: String
-    
+
     init(uv: Double) {
         self.uv = uv
         self.uvColor = AirQualityHelper.uvColor(for: uv)
@@ -610,7 +619,7 @@ struct UVGaugeView: View {
                 Circle()
                     .stroke(Color.white.opacity(0.15), lineWidth: 8)
                     .frame(width: 80, height: 80)
-                
+
                 // 进度圆环
                 Circle()
                     .trim(from: 0, to: min(Double(uv) / 11.0, 1.0))
@@ -624,7 +633,7 @@ struct UVGaugeView: View {
                     )
                     .frame(width: 80, height: 80)
                     .rotationEffect(.degrees(-90))
-                
+
                 // UV数值
                 VStack(spacing: 2) {
                     Text("\(Int(uv))")
@@ -632,10 +641,10 @@ struct UVGaugeView: View {
                         .foregroundStyle(uvColor)
                     Text("紫外线")
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.textSecondary(for: colorScheme))
                 }
             }
-            
+
             // 等级标签
             Text(uvLevel)
                 .font(.caption)
@@ -662,12 +671,14 @@ struct UVGaugeView: View {
 struct HourlyForecastSection: View {
     let hourly: HourlyForecast?
     @State private var appear = false
-    
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("24小时预报")
                 .font(.headline)
                 .fontWeight(.semibold)
+                .foregroundStyle(Theme.textPrimary(for: colorScheme))
                 .opacity(appear ? 1 : 0)
                 .offset(x: appear ? 0 : -20)
                 .animation(.spring(response: 0.5, dampingFraction: 0.8), value: appear)
@@ -754,23 +765,24 @@ struct HourlyForecastItem: View {
     let temperature: Double
     let weatherCode: Int
     let isNow: Bool
-    
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         VStack(spacing: 12) {
             Text(isNow ? "现在" : time)
                 .font(.caption)
                 .fontWeight(isNow ? .semibold : .medium)
-                .foregroundStyle(isNow ? .white : .primary.opacity(0.8))
-            
+                .foregroundStyle(isNow ? .white : Theme.textPrimary(for: colorScheme))
+
             Image(systemName: WeatherCode.icon(for: weatherCode))
                 .font(.system(size: 24, weight: .medium))
-                .foregroundStyle(isNow ? .white : .orange)
-                .shadow(color: isNow ? .white.opacity(0.5) : .orange.opacity(0.3), radius: 4, x: 0, y: 2)
-            
+                .foregroundStyle(isNow ? .white : WeatherCode.color(for: weatherCode))
+                .shadow(color: isNow ? .white.opacity(0.5) : WeatherCode.color(for: weatherCode).opacity(0.3), radius: 4, x: 0, y: 2)
+
             Text("\(Int(temperature))°")
                 .font(.headline)
                 .fontWeight(.semibold)
-                .foregroundStyle(isNow ? .white : .primary)
+                .foregroundStyle(isNow ? .white : Theme.textPrimary(for: colorScheme))
         }
         .padding(.vertical, 16)
         .padding(.horizontal, 12)
@@ -829,70 +841,73 @@ struct ForecastSection: View {
     let daily: DailyForecast
     @State private var appear = false
     @State private var progressAppear = false
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("7天预报")
                 .font(.headline)
                 .fontWeight(.semibold)
+                .foregroundStyle(Theme.textPrimary(for: colorScheme))
                 .opacity(appear ? 1 : 0)
                 .offset(x: appear ? 0 : -20)
                 .animation(.spring(response: 0.5, dampingFraction: 0.8), value: appear)
 
             VStack(spacing: 0) {
                 ForEach(Array(forecastItems.enumerated()), id: \.element.date) { index, item in
-                    HStack(spacing: 16) {
+                    HStack(spacing: 12) {
                         // 日期
                         Text(item.date)
                             .font(.subheadline)
                             .fontWeight(.medium)
-                            .frame(width: 70, alignment: .leading)
-                        
+                            .foregroundStyle(Theme.textPrimary(for: colorScheme))
+                            .frame(width: 60, alignment: .leading)
+
                         // 天气图标
                         ZStack {
                             Circle()
                                 .fill(
                                     LinearGradient(
-                                        colors: [Color.orange.opacity(0.2), Color.orange.opacity(0.05)],
+                                        colors: [WeatherCode.color(for: item.code).opacity(0.2), WeatherCode.color(for: item.code).opacity(0.05)],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     )
                                 )
                                 .frame(width: 40, height: 40)
-                            
+
                             Image(systemName: WeatherCode.icon(for: item.code))
                                 .font(.system(size: 20, weight: .medium))
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(WeatherCode.color(for: item.code))
                                 .symbolEffect(.bounce.up, options: .speed(0.5), value: appear)
                         }
-                        
+
                         // 天气描述
                         Text(WeatherCode.description(for: item.code))
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.textSecondary(for: colorScheme))
                             .lineLimit(1)
-                        
-                        Spacer()
-                        
-                        // 温度范围
-                        HStack(spacing: 12) {
+                            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+
+                        // 温度范围 - 固定宽度确保不被挤掉
+                        HStack(spacing: 8) {
                             Text("\(Int(item.min))°")
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                                 .foregroundStyle(.blue)
-                            
+                                .frame(minWidth: 30, alignment: .trailing)
+
                             // 温度进度条
                             GeometryReader { geometry in
                                 let range = (item.max - item.min)
                                 let normalizedMax = range > 0 ? CGFloat((item.max - item.min) / range) : 0.5
                                 let normalizedMin = range > 0 ? CGFloat(0) : 0.5
-                                
+
                                 ZStack(alignment: .leading) {
                                     // 背景条
                                     RoundedRectangle(cornerRadius: 4)
                                         .fill(Color.white.opacity(0.1))
                                         .frame(height: 6)
-                                    
+
                                     // 温度范围条
                                     RoundedRectangle(cornerRadius: 4)
                                         .fill(
@@ -911,13 +926,15 @@ struct ForecastSection: View {
                                         )
                                 }
                             }
-                            .frame(width: 80, height: 6)
-                            
+                            .frame(width: 60, height: 6)
+
                             Text("\(Int(item.max))°")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.orange)
+                                .frame(minWidth: 30, alignment: .leading)
                         }
+                        .layoutPriority(1)
                     }
                     .padding(.vertical, 12)
                     .opacity(appear ? 1 : 0)
