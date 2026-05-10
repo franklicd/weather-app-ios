@@ -39,8 +39,6 @@
 		A021 /* HourlyForecast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F022 /* HourlyForecast.swift */; };
 		A022 /* HeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F023 /* HeroCard.swift */; };
 			A023 /* WeatherDataComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F024 /* WeatherDataComponents.swift */; };
-	A023 /* DailyForecast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F024 /* DailyForecast.swift */; };
-/* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		TESTPROXY /* PBXContainerItemProxy */ = {
@@ -192,6 +190,7 @@
 				F021 /* SectionComponents.swift */,
 				F022 /* HourlyForecast.swift */,
 				F024 /* WeatherDataComponents.swift */,
+				F023 /* HeroCard.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
