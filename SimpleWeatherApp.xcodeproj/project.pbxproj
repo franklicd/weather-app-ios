@@ -86,7 +86,7 @@
 		F022 /* HourlyForecast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HourlyForecast.swift; sourceTree = "<group>"; };
 		F023 /* HeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroCard.swift; sourceTree = "<group>"; };
 			F024 /* WeatherDataComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherDataComponents.swift; sourceTree = "<group>"; };
-	F024 /* DailyForecast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyForecast.swift; sourceTree = "<group>"; };
+	F025 /* DailyForecast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyForecast.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -335,6 +335,7 @@
 				A020 /* SectionComponents.swift in Sources */,
 				A021 /* HourlyForecast.swift in Sources */,
 				A023 /* WeatherDataComponents.swift in Sources */,
+				A022 /* HeroCard.swift in Sources */,
 				46DE3C5CB13766B4D93E885F /* JWTGenerator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
