@@ -216,12 +216,8 @@ struct DTShadowModifier: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
 
     func body(content: Content) -> some View {
-        guard shadow.radius > 0 else { return content }
-        let effectiveColor = colorScheme == .dark
-            ? Color.black.opacity(min(shadow.color.opacity ?? 0.3, 0.3))
-            : shadow.color
-        return content.shadow(
-            color: effectiveColor,
+        content.shadow(
+            color: colorScheme == .dark ? Color.black.opacity(0.3) : shadow.color,
             radius: shadow.radius,
             x: shadow.x,
             y: shadow.y
