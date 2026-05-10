@@ -1,511 +1,212 @@
 import SwiftUI
 
 // MARK: - Weather Background View
+/// Lightweight "Ink & Atmosphere" background.
+/// Renders a condition-mapped base gradient, subtle ambient particles,
+/// and a top vignette for content readability.
 struct WeatherBackgroundView: View {
     let weatherCode: Int?
-    @State private var animationPhase = 0.0
+    @State private var particlePhase: CGFloat = 0
     @Environment(\.colorScheme) private var colorScheme
-    
+
     var body: some View {
         ZStack {
-            // 基础背景色
-            backgroundColor
+            // Base gradient per weather condition
+            baseGradient
                 .ignoresSafeArea()
-            
-            // 天气动画层
+
+            // Subtle ambient particles
             if let code = weatherCode {
-                weatherAnimation(for: code)
+                AmbientParticleLayer(weatherCode: code)
+                    .ignoresSafeArea()
+                    .opacity(colorScheme == .dark ? 0.4 : 0.15)
             }
-        }
-        .onAppear {
-            withAnimation(.linear(duration: 20).repeatForever(autoreverses: false)) {
-                animationPhase = 1.0
-            }
+
+            // Top vignette for readability
+            LinearGradient(
+                colors: [
+                    Color.black.opacity(colorScheme == .dark ? 0.3 : 0.02),
+                    Color.clear
+                ],
+                startPoint: .top,
+                endPoint: .center
+            )
+            .ignoresSafeArea()
         }
     }
-    
-    // MARK: - Background Color
-    private var backgroundColor: some View {
+
+    // MARK: - Base Gradient
+
+    /// Returns the condition-appropriate linear gradient.
+    @ViewBuilder
+    private var baseGradient: some View {
         let isDark = colorScheme == .dark
-        return Group {
-            if let code = weatherCode {
-                switch code {
-                case 0, 1: // 晴朗/主要晴朗
-                    LinearGradient(
-                        colors: isDark
-                            ? [Color(hex: "#0a0a0a"), Color(hex: "#1a1a1a")]
-                            : [Color(hex: "#FFFAF0"), Color(hex: "#FFFFFF")],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                case 2: // 部分多云
-                    LinearGradient(
-                        colors: isDark
-                            ? [Color(hex: "#0a0a0a"), Color(hex: "#1a1a1a")]
-                            : [Color(hex: "#F5F5F5"), Color(hex: "#FFFFFF")],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                case 3: // 多云
-                    LinearGradient(
-                        colors: isDark
-                            ? [Color(hex: "#050505"), Color(hex: "#151515")]
-                            : [Color(hex: "#E8E8E8"), Color(hex: "#FAFAFA")],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                case 45, 48: // 雾/雾凇
-                    LinearGradient(
-                        colors: isDark
-                            ? [Color(hex: "#0a0a0a"), Color(hex: "#1a1a1a")]
-                            : [Color(hex: "#F0F0F0"), Color(hex: "#FFFFFF")],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                case 51, 53, 55, 56, 57: // 毛毛雨/冻毛毛雨
-                    LinearGradient(
-                        colors: isDark
-                            ? [Color(hex: "#050505"), Color(hex: "#151515")]
-                            : [Color(hex: "#E8F0F5"), Color(hex: "#FAFBFC")],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                case 61, 63, 65, 66, 67: // 雨/冻雨
-                    LinearGradient(
-                        colors: isDark
-                            ? [Color(hex: "#050505"), Color(hex: "#151515")]
-                            : [Color(hex: "#E5E9EF"), Color(hex: "#F8FAFC")],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                case 71, 73, 75, 77: // 雪/雪粒
-                    LinearGradient(
-                        colors: isDark
-                            ? [Color(hex: "#0a0a0a"), Color(hex: "#1a1a1a")]
-                            : [Color(hex: "#F5F8FA"), Color(hex: "#FFFFFF")],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                case 80, 81, 82: // 阵雨
-                    LinearGradient(
-                        colors: isDark
-                            ? [Color(hex: "#050505"), Color(hex: "#151515")]
-                            : [Color(hex: "#E3E7ED"), Color(hex: "#F7F9FB")],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                case 85, 86: // 阵雪
-                    LinearGradient(
-                        colors: isDark
-                            ? [Color(hex: "#0a0a0a"), Color(hex: "#1a1a1a")]
-                            : [Color(hex: "#F0F7FF"), Color(hex: "#FFFFFF")],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                case 95, 96, 99: // 雷雨
-                    LinearGradient(
-                        colors: isDark
-                            ? [Color(hex: "#000000"), Color(hex: "#101010")]
-                            : [Color(hex: "#DCDFE4"), Color(hex: "#F5F6F7")],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                default:
-                    LinearGradient(
-                        colors: isDark
-                            ? [Color(hex: "#0a0a0a"), Color(hex: "#1a1a1a")]
-                            : [Color(hex: "#F8F8F8"), Color(hex: "#FFFFFF")],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                }
-            } else {
+        if let code = weatherCode {
+            switch code {
+            // Clear / Mainly Clear
+            case 0, 1:
                 LinearGradient(
                     colors: isDark
-                        ? [Color(hex: "#0a0a0a"), Color(hex: "#1a1a1a")]
-                        : [Color(hex: "#F8F8F8"), Color(hex: "#FFFFFF")],
+                        ? [Color(hex: "#0A0F1A"), Color(hex: "#111827")]
+                        : [Color(hex: "#FFFBEB"), Color(hex: "#FFF7ED"), Color(hex: "#FEF3C7")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+            // Partly Cloudy
+            case 2:
+                LinearGradient(
+                    colors: isDark
+                        ? [Color(hex: "#0A0F1A"), Color(hex: "#0F172A")]
+                        : [Color(hex: "#EFF6FF"), Color(hex: "#F8FAFC")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+            // Overcast
+            case 3:
+                LinearGradient(
+                    colors: isDark
+                        ? [Color(hex: "#0A0A0F"), Color(hex: "#111115")]
+                        : [Color(hex: "#F1F5F9"), Color(hex: "#F8FAFC")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+            // Fog / Depositing Rime Fog
+            case 45, 48:
+                LinearGradient(
+                    colors: isDark
+                        ? [Color(hex: "#0A0A0A"), Color(hex: "#111111")]
+                        : [Color(hex: "#F8FAFC"), Color(hex: "#F1F5F9")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+            // Drizzle (51-57)
+            case 51...57:
+                LinearGradient(
+                    colors: isDark
+                        ? [Color(hex: "#0A0F18"), Color(hex: "#0F172A")]
+                        : [Color(hex: "#E2E8F0"), Color(hex: "#F1F5F9")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+            // Rain (61-65, 80-82)
+            case 61...65, 80...82:
+                LinearGradient(
+                    colors: isDark
+                        ? [Color(hex: "#050810"), Color(hex: "#0A1020")]
+                        : [Color(hex: "#E2E8F0"), Color(hex: "#F1F5F9")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+            // Snow (71-77, 85-86)
+            case 71...77, 85, 86:
+                LinearGradient(
+                    colors: isDark
+                        ? [Color(hex: "#0A0F18"), Color(hex: "#111827")]
+                        : [Color(hex: "#F0F9FF"), Color(hex: "#FAFBFC")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+            // Thunderstorm (95-99)
+            case 95...99:
+                LinearGradient(
+                    colors: isDark
+                        ? [Color(hex: "#050508"), Color(hex: "#0A0A1A")]
+                        : [Color(hex: "#E8E0F0"), Color(hex: "#F1F0F5")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+            // Default
+            default:
+                LinearGradient(
+                    colors: isDark
+                        ? [Color(hex: "#0A0A0A"), Color(hex: "#141414")]
+                        : [Color(hex: "#FAFAFA"), Color(hex: "#FFFFFF")],
                     startPoint: .top,
                     endPoint: .bottom
                 )
             }
-        }
-    }
-    
-    // MARK: - Weather Animation
-    @ViewBuilder
-    private func weatherAnimation(for code: Int) -> some View {
-        switch code {
-        case 0, 1: // 晴朗 - 阳光射线 + 飘动云朵
-            ZStack {
-                SunRaysView(phase: animationPhase)
-                FloatingCloudsView(phase: animationPhase, density: .low)
-            }
-        case 2: // 部分多云 - 更多云朵
-            FloatingCloudsView(phase: animationPhase, density: .medium)
-        case 3: // 多云 - 密集灰色云朵
-            ZStack {
-                FloatingCloudsView(phase: animationPhase, density: .high)
-                    .opacity(0.8)
-            }
-        case 45, 48: // 雾 - 雾气弥漫
-            FogView(phase: animationPhase)
-        case 51, 53, 55, 56, 57: // 毛毛雨 - 细雨
-            RainView(phase: animationPhase, intensity: .light)
-        case 61, 63, 65, 66, 67: // 雨 - 中雨
-            RainView(phase: animationPhase, intensity: .medium)
-        case 71, 73, 75, 77: // 雪 - 雪花
-            SnowView(phase: animationPhase, intensity: .medium)
-        case 80, 81, 82: // 阵雨 - 大雨
-            RainView(phase: animationPhase, intensity: .heavy)
-        case 85, 86: // 阵雪 - 大雪
-            SnowView(phase: animationPhase, intensity: .heavy)
-        case 95, 96, 99: // 雷雨 - 闪电 + 雨
-            ZStack {
-                RainView(phase: animationPhase, intensity: .heavy)
-                LightningView(phase: animationPhase)
-            }
-        default:
-            FloatingCloudsView(phase: animationPhase, density: .low)
-        }
-    }
-}
-
-// MARK: - Sun Rays View
-struct SunRaysView: View {
-    let phase: Double
-    
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(0..<8) { i in
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.yellow.opacity(0.3),
-                                    Color.yellow.opacity(0)
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .frame(width: 4, height: geometry.size.height * 0.6)
-                        .position(
-                            x: geometry.size.width * 0.7 + cos(Double(i) * .pi / 4 + phase * .pi * 2) * 20,
-                            y: geometry.size.height * 0.2
-                        )
-                        .rotationEffect(.degrees(Double(i) * 45 + phase * 10))
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Floating Clouds View
-struct FloatingCloudsView: View {
-    let phase: Double
-    let density: CloudDensity
-    
-    enum CloudDensity {
-        case low, medium, high
-        
-        var count: Int {
-            switch self {
-            case .low: return 3
-            case .medium: return 5
-            case .high: return 8
-            }
-        }
-        
-        var opacity: Double {
-            switch self {
-            case .low: return 0.6
-            case .medium: return 0.7
-            case .high: return 0.85
-            }
-        }
-    }
-    
-    var body: some View {
-        GeometryReader { geometry in
-            let size = geometry.size
-            ZStack {
-                ForEach(Array(0..<density.count), id: \.self) { i in
-                    let iDouble = Double(i)
-                    CloudShape()
-                        .fill(Color.white.opacity(density.opacity))
-                        .frame(width: 120 + iDouble * 20, height: 60 + iDouble * 10)
-                        .modifier(CloudPositionModifier(
-                            phase: phase,
-                            i: iDouble,
-                            geometrySize: size
-                        ))
-                }
-            }
-        }
-    }
-}
-
-struct CloudPositionModifier: ViewModifier {
-    let phase: Double
-    let i: Double
-    let geometrySize: CGSize
-    
-    func body(content: Content) -> some View {
-        content
-            .offset(
-                x: sin(phase * .pi * 2 + i) * 50 + i * 30 - 100,
-                y: cos(phase * .pi * 2 + i * 0.5) * 20 + i * 40
+        } else {
+            // No weather code — default gradient
+            LinearGradient(
+                colors: isDark
+                    ? [Color(hex: "#0A0A0A"), Color(hex: "#141414")]
+                    : [Color(hex: "#FAFAFA"), Color(hex: "#FFFFFF")],
+                startPoint: .top,
+                endPoint: .bottom
             )
-            .position(
-                x: geometrySize.width * (0.2 + i * 0.15),
-                y: geometrySize.height * (0.15 + Double(Int(i) % 3) * 0.1)
-            )
+        }
     }
 }
 
-// MARK: - Cloud Shape
-struct CloudShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let width = rect.width
-        let height = rect.height
-        
-        // 简化的云朵形状
-        path.addEllipse(in: CGRect(x: 0, y: height * 0.3, width: width * 0.5, height: height * 0.7))
-        path.addEllipse(in: CGRect(x: width * 0.25, y: 0, width: width * 0.5, height: height * 0.8))
-        path.addEllipse(in: CGRect(x: width * 0.5, y: height * 0.2, width: width * 0.5, height: height * 0.6))
-        
-        return path
-    }
-}
+// MARK: - Ambient Particle Layer
 
-// MARK: - Fog View
-struct FogView: View {
-    let phase: Double
-    
+/// Canvas-based particle layer. Uses a single draw call with golden-ratio
+/// x-distribution and a gentle vertical drift animation.
+struct AmbientParticleLayer: View {
+    let weatherCode: Int
+    @State private var phase: CGFloat = 0
+
+    /// Number of particles varies by weather condition.
+    private var particleCount: Int {
+        switch weatherCode {
+        case 0, 1:                          return 15
+        case 51...57:                       return 35
+        case 61...65, 80...82:              return 40
+        case 71...77, 85, 86:               return 40
+        case 95...99:                       return 50
+        default:                            return 20
+        }
+    }
+
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(0..<5) { i in
-                    RoundedRectangle(cornerRadius: 50)
-                        .fill(Color.white.opacity(0.3 + Double(i) * 0.05))
-                        .frame(height: 80 + Double(i) * 20)
-                        .offset(x: sin(phase * .pi * 2 + Double(i)) * 100)
-                        .position(
-                            x: geometry.size.width / 2,
-                            y: geometry.size.height * (0.3 + Double(i) * 0.15)
-                        )
-                }
-            }
-        }
-    }
-}
+        Canvas { context, size in
+            let goldenRatio: CGFloat = 1.618033988749895
+            let count = particleCount
 
-// MARK: - Rain View
-struct RainView: View {
-    let phase: Double
-    let intensity: RainIntensity
-    
-    enum RainIntensity {
-        case light, medium, heavy
-        
-        var dropCount: Int {
-            switch self {
-            case .light: return 30
-            case .medium: return 60
-            case .heavy: return 100
-            }
-        }
-        
-        var speed: Double {
-            switch self {
-            case .light: return 0.5
-            case .medium: return 1.0
-            case .heavy: return 1.5
-            }
-        }
-        
-        var length: CGFloat {
-            switch self {
-            case .light: return 15
-            case .medium: return 20
-            case .heavy: return 25
-            }
-        }
-    }
-    
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(Array(0..<intensity.dropCount), id: \.self) { i in
-                    RainDrop(
-                        x: Double(i) / Double(intensity.dropCount),
-                        delay: Double(i % 10) * 0.2,
-                        speed: intensity.speed
-                    )
-                    .frame(width: 2, height: intensity.length)
-                    .modifier(RainDropPositionModifier(
-                        phase: phase,
-                        intensity: intensity,
-                        i: i,
-                        geometrySize: geometry.size
-                    ))
-                }
-            }
-        }
-    }
-}
+            for i in 0..<count {
+                // Golden ratio distribution for x positions
+                let xNorm = CGFloat((Double(i) * goldenRatio).truncatingRemainder(dividingBy: 1.0))
+                let x = size.width * xNorm
 
-struct RainDropPositionModifier: ViewModifier {
-    let phase: Double
-    let intensity: RainView.RainIntensity
-    let i: Int
-    let geometrySize: CGSize
-    
-    func body(content: Content) -> some View {
-        let iDouble = Double(i)
-        let x = geometrySize.width * CGFloat(iDouble * 1.618.truncatingRemainder(dividingBy: 1.0))
-        let y = CGFloat(fmod(phase * intensity.speed * 1000 + iDouble * 20, Double(geometrySize.height + 100)))
-        content.position(x: x, y: y)
-    }
-}
+                // Animate y based on phase; offset each particle differently
+                let yBase = size.height * CGFloat(i) / CGFloat(count)
+                let yOffset = phase * size.height
+                let y = (yBase + yOffset).truncatingRemainder(dividingBy: size.height)
 
-// MARK: - Rain Drop
-struct RainDrop: View {
-    let x: Double
-    let delay: Double
-    let speed: Double
-    
-    var body: some View {
-        Capsule()
-            .fill(Color.white.opacity(0.6))
-    }
-}
+                // Particle radius: 1-3 pt
+                let radius: CGFloat = 1.0 + CGFloat(i % 3)
+                // Very low opacity: 0.05-0.15
+                let opacity: Double = 0.05 + Double(i % 11) * 0.01
 
-// MARK: - Snow View
-struct SnowView: View {
-    let phase: Double
-    let intensity: SnowIntensity
-    
-    enum SnowIntensity {
-        case medium, heavy
-        
-        var flakeCount: Int {
-            switch self {
-            case .medium: return 40
-            case .heavy: return 80
+                let rect = CGRect(
+                    x: x - radius,
+                    y: y - radius,
+                    width: radius * 2,
+                    height: radius * 2
+                )
+                context.opacity = opacity
+                context.fill(
+                    Path(ellipseIn: rect),
+                    with: .color(.white)
+                )
             }
         }
-    }
-    
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(Array(0..<intensity.flakeCount), id: \.self) { i in
-                    Circle()
-                        .fill(Color.white.opacity(0.8))
-                        .frame(width: 4 + CGFloat.random(in: 0...4))
-                        .modifier(SnowFlakePositionModifier(
-                            phase: phase,
-                            i: i,
-                            geometrySize: geometry.size
-                        ))
-                }
+        .onAppear {
+            withAnimation(
+                .linear(duration: 15)
+                .repeatForever(autoreverses: false)
+            ) {
+                phase = 1.0
             }
         }
-    }
-}
-
-struct SnowFlakePositionModifier: ViewModifier {
-    let phase: Double
-    let i: Int
-    let geometrySize: CGSize
-    
-    func body(content: Content) -> some View {
-        let iDouble = Double(i)
-        content
-            .position(
-                x: CGFloat(fmod(phase * 50 + iDouble * 30, Double(geometrySize.width))),
-                y: CGFloat(fmod(phase * 30 + iDouble * 25, Double(geometrySize.height + 50)))
-            )
-            .offset(
-                x: sin(phase * .pi * 2 + iDouble) * 30,
-                y: 0
-            )
-    }
-}
-
-// MARK: - Lightning View
-struct LightningView: View {
-    let phase: Double
-    @State private var flashOpacity: Double = 0
-    
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // 闪电形状
-                LightningShape()
-                    .fill(Color.yellow.opacity(flashOpacity))
-                    .frame(width: 60, height: 200)
-                    .position(x: geometry.size.width * 0.7, y: geometry.size.height * 0.3)
-                
-                // 屏幕闪光效果
-                Color.white.opacity(flashOpacity * 0.3)
-                    .ignoresSafeArea()
-            }
-            .onAppear {
-                startLightningAnimation()
-            }
-            .onChange(of: phase) { oldValue, newValue in
-                if Int.random(in: 0...100) < 5 { // 5% 概率触发闪电
-                    Task { @MainActor in
-                        triggerFlash()
-                    }
-                }
-            }
-        }
-    }
-    
-    private func startLightningAnimation() {
-        Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { _ in
-            if Int.random(in: 0...100) < 30 { // 30% 概率每3秒
-                Task { @MainActor in
-                    triggerFlash()
-                }
-            }
-        }
-    }
-    
-    @MainActor
-    private func triggerFlash() {
-        withAnimation(.easeOut(duration: 0.1)) {
-            flashOpacity = 1.0
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            withAnimation(.easeIn(duration: 0.2)) {
-                flashOpacity = 0.0
-            }
-        }
-    }
-}
-
-// MARK: - Lightning Shape
-struct LightningShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let w = rect.width
-        let h = rect.height
-        
-        path.move(to: CGPoint(x: w * 0.5, y: 0))
-        path.addLine(to: CGPoint(x: w * 0.3, y: h * 0.4))
-        path.addLine(to: CGPoint(x: w * 0.6, y: h * 0.4))
-        path.addLine(to: CGPoint(x: w * 0.4, y: h))
-        path.addLine(to: CGPoint(x: w * 0.7, y: h * 0.5))
-        path.addLine(to: CGPoint(x: w * 0.4, y: h * 0.5))
-        path.closeSubpath()
-        
-        return path
     }
 }
 
