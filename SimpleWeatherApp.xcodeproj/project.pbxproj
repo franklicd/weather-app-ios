@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		A018 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = F019 /* DesignTokens.swift */; };
+		A019 /* ContainerStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = F020 /* ContainerStyles.swift */; };
 		0052EAAEDCE5FB32A2E4EE3A /* WeatherDataConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBC16FB58C9B30EC7CFFF17 /* WeatherDataConversionTests.swift */; };
 		46DE3C5CB13766B4D93E885F /* JWTGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5732AAE5AF24A0F902F5DE4B /* JWTGenerator.swift */; };
 		5425EE46FA01DAEFBBDEF611 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4250DAE9524671FDD1E61A7F /* Config.swift */; };
@@ -34,6 +35,7 @@
 		T001 /* WeatherStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TF001 /* WeatherStoreTests.swift */; };
 		T002 /* WeatherModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TF002 /* WeatherModelsTests.swift */; };
 		T003 /* AlertGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TF003 /* AlertGeneratorTests.swift */; };
+		A020 /* SectionComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F021 /* SectionComponents.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +50,7 @@
 
 /* Begin PBXFileReference section */
 		F019 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
+		F020 /* ContainerStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerStyles.swift; sourceTree = "<group>"; };
 		1ECC8C4B7300E5DA9EC613BB /* RegressionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RegressionTests.swift; path = SimpleWeatherAppTests/RegressionTests.swift; sourceTree = "<group>"; };
 		2CBC16FB58C9B30EC7CFFF17 /* WeatherDataConversionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeatherDataConversionTests.swift; path = SimpleWeatherAppTests/WeatherDataConversionTests.swift; sourceTree = "<group>"; };
 		3C67A48C001E069B5F30A90E /* JWTGeneratorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = JWTGeneratorTests.swift; path = SimpleWeatherAppTests/JWTGeneratorTests.swift; sourceTree = "<group>"; };
@@ -77,6 +80,7 @@
 		TF001 /* WeatherStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherStoreTests.swift; sourceTree = "<group>"; };
 		TF002 /* WeatherModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherModelsTests.swift; sourceTree = "<group>"; };
 		TF003 /* AlertGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertGeneratorTests.swift; sourceTree = "<group>"; };
+		F021 /* SectionComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionComponents.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,6 +121,7 @@
 			isa = PBXGroup;
 			children = (
 				F019 /* DesignTokens.swift */,
+				F020 /* ContainerStyles.swift */,
 			);
 			path = Design;
 			sourceTree = "<group>";
@@ -173,6 +178,14 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
+		COMPONENTGRP /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				F021 /* SectionComponents.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
 		TESTGRP /* WeatherAppTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -186,6 +199,7 @@
 		VIEWGRP /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				COMPONENTGRP /* Components */,
 				F007 /* CityListView.swift */,
 				F008 /* CityDetailView.swift */,
 				F009 /* SettingsView.swift */,
@@ -300,6 +314,7 @@
 				A016 /* NotificationManager.swift in Sources */,
 				A017 /* BackgroundTaskManager.swift in Sources */,
 				A018 /* DesignTokens.swift in Sources */,
+				A019 /* ContainerStyles.swift in Sources */,
 				A007 /* CityListView.swift in Sources */,
 				A008 /* CityDetailView.swift in Sources */,
 				A009 /* SettingsView.swift in Sources */,
@@ -308,6 +323,7 @@
 				A014 /* ImprovedWeatherAnimations.swift in Sources */,
 				A015 /* AlertBannerView.swift in Sources */,
 				5425EE46FA01DAEFBBDEF611 /* Config.swift in Sources */,
+				A020 /* SectionComponents.swift in Sources */,
 				46DE3C5CB13766B4D93E885F /* JWTGenerator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
