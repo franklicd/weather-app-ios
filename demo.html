@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>简天气 - UI Redesign Demo</title>
+<style>
+/* ===== RESET & BASE ===== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Rounded","Helvetica Neue",sans-serif;
+  background:#0a0a0a;color:#fff;overflow-x:hidden;
+}
+
+/* ===== LAYOUT ===== */
+.page{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 20px}
+.page-title{font-size:42px;font-weight:800;letter-spacing:-1px;margin-bottom:6px;background:linear-gradient(135deg,#5B9CF6,#A78BFA);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.page-subtitle{font-size:15px;color:rgba(255,255,255,.4);margin-bottom:48px;letter-spacing:2px}
+
+/* Screen selector */
+.screen-selector{display:flex;gap:8px;margin-bottom:40px;flex-wrap:wrap;justify-content:center}
+.screen-btn{
+  padding:10px 22px;border-radius:100px;border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .25s ease;user-select:none
+}
+.screen-btn:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7)}
+.screen-btn.active{background:linear-gradient(135deg,#1A56DB,#3B82F6);color:#fff;border-color:transparent;box-shadow:0 4px 20px rgba(26,86,219,.35)}
+
+/* Mode toggle */
+.mode-row{display:flex;align-items:center;gap:16px;margin-bottom:40px}
+.mode-toggle{
+  display:flex;border-radius:100px;overflow:hidden;border:1px solid rgba(255,255,255,.1);
+}
+.mode-btn{padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:rgba(255,255,255,.04);color:rgba(255,255,255,.4);transition:all .2s}
+.mode-btn.active{background:rgba(255,255,255,.12);color:#fff}
+
+/* ===== IPHONE FRAME ===== */
+.iphone-frame{
+  width:393px;height:852px;border-radius:52px;position:relative;
+  background:#000;padding:12px;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 40px 80px rgba(0,0,0,.6);
+  transition:transform .4s cubic-bezier(.25,.46,.45,.94)
+}
+.iphone-frame:hover{transform:translateY(-4px)}
+.iphone-screen{
+  width:100%;height:100%;border-radius:42px;overflow:hidden;position:relative;
+  background:#0a0a0a
+}
+
+/* Dynamic Island */
+.dynamic-island{
+  position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  width:126px;height:36px;background:#000;border-radius:20px;z-index:100
+}
+
+/* ===== SCREEN: SPLASH ===== */
+.screen-splash{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(circle at center,#1A56DB 0%,#111827 40%,#0A0A0A 70%);
+  opacity:0;transition:opacity .3s;pointer-events:none
+}
+.screen-splash.visible{opacity:1;pointer-events:auto}
+.screen-splash .splash-icon{
+  font-size:72px;margin-bottom:32px;
+  animation:splashBreathe 3s ease-in-out infinite;
+  filter:drop-shadow(0 0 30px rgba(245,158,11,.4))
+}
+.screen-splash .splash-title{font-size:52px;font-weight:200;letter-spacing:4px;margin-bottom:12px}
+.screen-splash .splash-tagline{font-size:14px;color:rgba(255,255,255,.5);letter-spacing:4px}
+@keyframes splashBreathe{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.06)}
+}
+
+/* Splash particles */
+.splash-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.splash-particle{
+  position:absolute;width:3px;height:3px;background:rgba(255,255,255,.15);border-radius:50%;
+  animation:particleDrift 15s linear infinite
+}
+@keyframes particleDrift{
+  0%{transform:translateY(0)}
+  100%{transform:translateY(-900px)}
+}
+
+/* ===== SCREEN: CITY LIST ===== */
+.screen-city{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;transition:opacity .3s;pointer-events:none}
+.screen-city.visible{opacity:1;pointer-events:auto}
+
+.city-bg{position:absolute;inset:0;transition:background .6s}
+.city-bg.light{background:#F8FAFC}
+.city-bg.dark{background:#0A0A0A}
+
+.city-content{position:relative;z-index:1;display:flex;flex-direction:column;height:100%;padding-top:60px}
+
+.city-nav{
+  padding:8px 20px 0;display:flex;justify-content:space-between;align-items:center
+}
+.city-nav-title{font-size:26px;font-weight:800}
+.city-nav-title.light{color:#111827}
+.city-nav-title.dark{color:#fff}
+.city-nav-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(128,128,128,.1);font-size:14px}
+
+/* Search pill */
+.search-pill{
+  margin:16px 20px 0;padding:12px 16px;border-radius:100px;
+  display:flex;align-items:center;gap:10px;
+  transition:background .3s,border-color .3s
+}
+.search-pill.light{background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06)}
+.search-pill.dark{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.search-pill .search-icon{font-size:15px;opacity:.35}
+.search-pill .search-text{font-size:14px;opacity:.35}
+
+/* Section header */
+.section-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:20px 20px 12px
+}
+.section-header h2{font-size:20px;font-weight:700}
+.section-header h2.light{color:#111827}
+.section-header h2.dark{color:#fff}
+.section-header .add-btn{font-size:22px;opacity:.6;cursor:pointer}
+
+/* City cards */
+.city-cards{flex:1;overflow-y:auto;padding:0 20px 100px;display:flex;flex-direction:column;gap:8px}
+.city-card{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 16px;border-radius:16px;position:relative;
+  transition:all .25s;cursor:pointer
+}
+.city-card.light{background:rgba(255,255,255,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.5)}
+.city-card.dark{background:rgba(255,255,255,.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.06)}
+.city-card.selected{border-color:rgba(26,86,219,.4)}
+.city-card.selected .accent-bar{opacity:1}
+
+.accent-bar{
+  position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:3px;height:44px;border-radius:3px;background:#1A56DB;
+  opacity:0;transition:opacity .25s
+}
+
+.city-info{flex:1}
+.city-name-row{display:flex;align-items:center;gap:6px}
+.city-name{font-size:16px;font-weight:600}
+.city-name.light{color:#111827}
+.city-name.dark{color:#fff}
+.loc-icon{font-size:11px;color:#1A56DB}
+.alert-badge{
+  font-size:10px;font-weight:700;color:#fff;
+  padding:2px 8px;border-radius:100px;
+  background:linear-gradient(135deg,#EF4444,#F59E0B)
+}
+.city-desc{font-size:13px;margin-top:3px}
+.city-desc.light{color:rgba(0,0,0,.4)}
+.city-desc.dark{color:rgba(255,255,255,.45)}
+
+.city-temp{display:flex;align-items:center;gap:6px}
+.weather-icon{font-size:20px}
+.temp-value{font-size:22px;font-weight:700}
+.temp-value.light{color:#111827}
+.temp-value.dark{color:rgba(255,255,255,.9)}
+
+/* Weather tint overlay on card */
+.weather-tint{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:.5}
+.weather-tint.sunny{background:rgba(245,158,11,.06)}
+.weather-tint.cloudy{background:rgba(96,165,250,.06)}
+.weather-tint.rainy{background:rgba(37,99,235,.06)}
+.weather-tint.snowy{background:rgba(186,230,253,.06)}
+
+/* ===== SCREEN: DETAIL ===== */
+.screen-detail{position:absolute;inset:0;flex-direction:column;opacity:0;transition:opacity .3s;pointer-events:none;display:none}
+.screen-detail.visible{opacity:1;pointer-events:auto;display:flex}
+
+.detail-bg{position:absolute;inset:0;transition:background .6s}
+.detail-bg.sunny-light{background:linear-gradient(135deg,#FFFBEB,#FFF7ED,#FEF3C7)}
+.detail-bg.sunny-dark{background:linear-gradient(135deg,#0A0F1A,#111827)}
+.detail-bg.rainy-light{background:linear-gradient(135deg,#E2E8F0,#F1F5F9)}
+.detail-bg.rainy-dark{background:linear-gradient(135deg,#050810,#0A1020)}
+
+.detail-content{position:relative;z-index:1;height:100%;overflow-y:auto;padding:60px 16px 100px;display:flex;flex-direction:column;gap:14px}
+
+/* Nav bar */
+.detail-nav{
+  position:absolute;top:0;left:0;right:0;z-index:10;
+  padding:14px 20px;padding-top:60px;
+  display:flex;justify-content:space-between;align-items:center;
+  background:transparent
+}
+.detail-nav-title{font-size:17px;font-weight:600}
+.detail-nav-title.light{color:#111827}
+.detail-nav-title.dark{color:#fff}
+.refresh-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(128,128,128,.1);font-size:14px}
+
+/* Hero card */
+.hero-card{
+  border-radius:32px;padding:28px 20px 24px;text-align:center;position:relative;overflow:hidden
+}
+.hero-card.light{
+  background:rgba(255,255,255,.55);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  border:1px solid rgba(255,255,255,.4);box-shadow:0 8px 32px rgba(0,0,0,.06)
+}
+.hero-card.dark{
+  background:rgba(255,255,255,.06);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  border:1px solid rgba(255,255,255,.08);box-shadow:0 8px 32px rgba(0,0,0,.2)
+}
+.hero-gradient{
+  position:absolute;inset:0;border-radius:32px;pointer-events:none;
+  opacity:.6
+}
+.hero-gradient.sunny{background:linear-gradient(135deg,rgba(254,243,199,.7),rgba(253,230,138,.5),rgba(251,191,36,.3))}
+.hero-gradient.sunny-dark{background:linear-gradient(135deg,rgba(30,58,95,.4),rgba(45,27,105,.3))}
+.hero-gradient.rainy{background:linear-gradient(135deg,rgba(203,213,225,.4),rgba(148,163,184,.2))}
+.hero-gradient.rainy-dark{background:linear-gradient(135deg,rgba(15,23,42,.5),rgba(30,41,59,.3))}
+
+.hero-top{display:flex;justify-content:center;position:relative;margin-bottom:8px}
+.hero-icon{font-size:56px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.15));animation:iconBreathe 3s ease-in-out infinite}
+@keyframes iconBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.hero-alert{
+  position:absolute;top:-4px;right:calc(50% - 60px);
+  padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;color:#fff;
+  background:linear-gradient(135deg,#EF4444,#F59E0B);animation:badgePulse 1.5s ease-in-out infinite
+}
+@keyframes badgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+.hero-temp{font-size:88px;font-weight:200;line-height:1;position:relative;z-index:1}
+.hero-temp.light{color:rgba(0,0,0,.85)}
+.hero-temp.dark{color:rgba(255,255,255,.95)}
+.hero-desc{font-size:18px;font-weight:600;margin-top:6px;position:relative;z-index:1}
+.hero-desc.light{color:rgba(0,0,0,.6)}
+.hero-desc.dark{color:rgba(255,255,255,.75)}
+.hero-feels{font-size:13px;margin-top:6px;position:relative;z-index:1}
+.hero-feels.light{color:rgba(0,0,0,.4)}
+.hero-feels.dark{color:rgba(255,255,255,.5)}
+
+/* Glass card base */
+.glass-card{
+  border-radius:24px;padding:18px;position:relative;
+  transition:background .3s,border-color .3s
+}
+.glass-card.light{
+  background:rgba(255,255,255,.55);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  border:1px solid rgba(255,255,255,.4)
+}
+.glass-card.dark{
+  background:rgba(255,255,255,.06);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  border:1px solid rgba(255,255,255,.08)
+}
+
+/* Section header inside cards */
+.card-header{display:flex;align-items:center;gap:6px;margin-bottom:14px}
+.card-header-icon{font-size:13px;font-weight:700;color:#1A56DB}
+.card-header-title{font-size:16px;font-weight:600}
+.card-header-title.light{color:#111827}
+.card-header-title.dark{color:rgba(255,255,255,.9)}
+
+/* Hourly forecast */
+.hourly-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.hourly-scroll::-webkit-scrollbar{display:none}
+.hourly-item{
+  flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:12px 10px;border-radius:16px;min-width:60px;
+  transition:background .2s
+}
+.hourly-item.light{background:rgba(0,0,0,.03)}
+.hourly-item.dark{background:rgba(255,255,255,.04)}
+.hourly-item.now{
+  background:linear-gradient(135deg,#1A56DB,#3B82F6) !important;
+  box-shadow:0 4px 16px rgba(26,86,219,.35)
+}
+.hourly-time{font-size:12px;font-weight:500}
+.hourly-time.light{color:rgba(0,0,0,.5)}
+.hourly-time.dark{color:rgba(255,255,255,.6)}
+.hourly-item.now .hourly-time{color:#fff !important}
+.hourly-item .weather-icon{font-size:22px}
+.hourly-temp{font-size:16px;font-weight:600}
+.hourly-temp.light{color:rgba(0,0,0,.8)}
+.hourly-temp.dark{color:rgba(255,255,255,.9)}
+.hourly-item.now .hourly-temp{color:#fff !important}
+.temp-bar{
+  width:20px;height:3px;border-radius:3px;
+  background:linear-gradient(90deg,#3B82F6,#E8783A)
+}
+
+/* Detail grid */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.detail-cell{
+  padding:14px;border-radius:16px;
+  display:flex;flex-direction:column;gap:8px
+}
+.detail-cell.light{background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.08)}
+.detail-cell.dark{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.08)}
+.detail-cell.tint-blue.light{background:rgba(59,130,246,.06);border-color:rgba(59,130,246,.1)}
+.detail-cell.tint-blue.dark{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.1)}
+.detail-cell.tint-teal.light{background:rgba(6,182,212,.06);border-color:rgba(6,182,212,.1)}
+.detail-cell.tint-teal.dark{background:rgba(6,182,212,.08);border-color:rgba(6,182,212,.1)}
+.detail-cell.tint-purple.light{background:rgba(139,92,246,.06);border-color:rgba(139,92,246,.1)}
+.detail-cell.tint-purple.dark{background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.1)}
+.detail-cell.tint-amber.light{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.1)}
+.detail-cell.tint-amber.dark{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.1)}
+
+.cell-top{display:flex;align-items:center;gap:6px}
+.cell-icon{
+  width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:13px
+}
+.cell-icon.blue{background:rgba(59,130,246,.15);color:#3B82F6}
+.cell-icon.teal{background:rgba(6,182,212,.15);color:#06B6D4}
+.cell-icon.purple{background:rgba(139,92,246,.15);color:#8B5CF6}
+.cell-icon.amber{background:rgba(245,158,11,.15);color:#F59E0B}
+.cell-label{font-size:12px;font-weight:500}
+.cell-label.light{color:rgba(0,0,0,.4)}
+.cell-label.dark{color:rgba(255,255,255,.5)}
+.cell-value{font-size:20px;font-weight:700}
+.cell-value.light{color:rgba(0,0,0,.85)}
+.cell-value.dark{color:rgba(255,255,255,.9)}
+
+/* AQI/UV gauges */
+.aqi-row{display:flex;gap:14px;margin-bottom:14px}
+.gauge{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:16px 8px;border-radius:16px
+}
+.gauge.light{background:rgba(0,0,0,.03)}
+.gauge.dark{background:rgba(255,255,255,.04)}
+.gauge-ring{position:relative;width:72px;height:72px}
+.gauge-ring svg{width:72px;height:72px;transform:rotate(-90deg)}
+.gauge-track{fill:none;stroke-width:6}
+.gauge-track.light{stroke:rgba(0,0,0,.06)}
+.gauge-track.dark{stroke:rgba(255,255,255,.08)}
+.gauge-progress{fill:none;stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)}
+.gauge-value{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center
+}
+.gauge-num{font-size:22px;font-weight:700}
+.gauge-num.light{color:rgba(0,0,0,.85)}
+.gauge-num.dark{color:rgba(255,255,255,.9)}
+.gauge-label{font-size:10px}
+.gauge-label.light{color:rgba(0,0,0,.4)}
+.gauge-label.dark{color:rgba(255,255,255,.5)}
+.gauge-badge{
+  font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;margin-top:2px
+}
+
+/* Pollutant bars */
+.pollutant-row{display:flex;flex-direction:column;gap:4px;padding:6px 0}
+.pollutant-top{display:flex;justify-content:space-between;align-items:center}
+.pollutant-name{font-size:13px}
+.pollutant-name.light{color:rgba(0,0,0,.5)}
+.pollutant-name.dark{color:rgba(255,255,255,.55)}
+.pollutant-val{font-size:12px;font-weight:600}
+.pollutant-val.light{color:rgba(0,0,0,.7)}
+.pollutant-val.dark{color:rgba(255,255,255,.75)}
+.pollutant-bar-track{height:4px;border-radius:4px;position:relative;overflow:hidden}
+.pollutant-bar-track.light{background:rgba(0,0,0,.04)}
+.pollutant-bar-track.dark{background:rgba(255,255,255,.06)}
+.pollutant-bar-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+/* 7-day forecast */
+.forecast-row{
+  display:flex;align-items:center;gap:12px;padding:10px 0;
+  border-bottom:1px solid rgba(128,128,128,.08)
+}
+.forecast-row:last-child{border-bottom:none}
+.forecast-date{font-size:14px;font-weight:500;width:50px}
+.forecast-date.light{color:rgba(0,0,0,.7)}
+.forecast-date.dark{color:rgba(255,255,255,.8)}
+.forecast-date.today{color:#1A56DB !important;font-weight:700}
+.forecast-icon{font-size:18px;width:24px;text-align:center}
+.forecast-min,.forecast-max{font-size:13px;font-weight:500;width:30px;text-align:center}
+.forecast-min.light{color:rgba(0,0,0,.35)}
+.forecast-min.dark{color:rgba(255,255,255,.5)}
+.forecast-max.light{color:rgba(0,0,0,.8)}
+.forecast-max.dark{color:rgba(255,255,255,.9)}
+.forecast-bar-track{
+  flex:1;height:5px;border-radius:5px;position:relative;overflow:hidden
+}
+.forecast-bar-track.light{background:rgba(0,0,0,.04)}
+.forecast-bar-track.dark{background:rgba(255,255,255,.06)}
+.forecast-bar-fill{
+  position:absolute;height:100%;border-radius:5px;
+  background:linear-gradient(90deg,#60A5FA,#F59E0B);
+  transition:all .6s cubic-bezier(.4,0,.2,1)
+}
+
+/* Updated time */
+.updated-time{
+  text-align:center;font-size:10px;padding:12px 0 4px
+}
+.updated-time.light{color:rgba(0,0,0,.25)}
+.updated-time.dark{color:rgba(255,255,255,.3)}
+
+/* Alert banner */
+.alert-banner{
+  border-radius:20px;padding:14px 16px;cursor:pointer;
+  transition:background .2s
+}
+.alert-banner.light{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.15)}
+.alert-banner.dark{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.15)}
+.alert-banner-top{display:flex;align-items:center;gap:12px}
+.alert-icon{
+  width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:rgba(245,158,11,.15);font-size:16px;flex-shrink:0
+}
+.alert-info{flex:1}
+.alert-title{font-size:15px;font-weight:600}
+.alert-title.light{color:#111827}
+.alert-title.dark{color:#fff}
+.alert-count{font-size:13px}
+.alert-count.light{color:rgba(0,0,0,.4)}
+.alert-count.dark{color:rgba(255,255,255,.5)}
+.alert-chevron{font-size:12px;opacity:.35}
+
+/* ===== SCREEN: SETTINGS ===== */
+.screen-settings{position:absolute;inset:0;flex-direction:column;opacity:0;transition:opacity .3s;pointer-events:none;display:none}
+.screen-settings.visible{opacity:1;pointer-events:auto;display:flex}
+
+.settings-bg{position:absolute;inset:0;transition:background .6s}
+.settings-bg.light{background:#F8FAFC}
+.settings-bg.dark{background:#0A0A0A}
+
+.settings-content{position:relative;z-index:1;height:100%;overflow-y:auto;padding:60px 16px 100px;display:flex;flex-direction:column;gap:20px}
+
+.settings-header{text-align:center;padding:20px 0 8px}
+.settings-header .icon{font-size:48px;margin-bottom:12px}
+.settings-header .title{font-size:26px;font-weight:800}
+.settings-header .title.light{color:#111827}
+.settings-header .title.dark{color:#fff}
+
+.settings-group{display:flex;flex-direction:column}
+.settings-group-label{
+  font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+  padding:0 4px 8px;color:#6B7280
+}
+.settings-group-card{
+  border-radius:20px;padding:4px 14px;
+  transition:background .3s,border-color .3s
+}
+.settings-group-card.light{
+  background:rgba(255,255,255,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.5)
+}
+.settings-group-card.dark{
+  background:rgba(255,255,255,.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.08)
+}
+
+.settings-row{display:flex;align-items:center;gap:12px;padding:12px 0}
+.settings-row+.settings-row{border-top:1px solid rgba(128,128,128,.06)}
+.settings-row-icon{
+  width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0
+}
+.settings-row-icon.blue{background:rgba(59,130,246,.12);color:#3B82F6}
+.settings-row-icon.purple{background:rgba(139,92,246,.12);color:#8B5CF6}
+.settings-row-icon.amber{background:rgba(245,158,11,.12);color:#F59E0B}
+.settings-row-icon.teal{background:rgba(6,182,212,.12);color:#06B6D4}
+.settings-row-icon.gray{background:rgba(55,65,81,.12);color:#374151}
+.settings-row-label{flex:1;font-size:15px;font-weight:500}
+.settings-row-label.light{color:#111827}
+.settings-row-label.dark{color:#fff}
+.settings-row-value{font-size:13px}
+.settings-row-value.light{color:rgba(0,0,0,.35)}
+.settings-row-value.dark{color:rgba(255,255,255,.4)}
+
+.legend-row{display:flex;align-items:center;gap:8px;padding:4px 0}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.legend-text{font-size:13px}
+.legend-text.light{color:rgba(0,0,0,.5)}
+.legend-text.dark{color:rgba(255,255,255,.55)}
+
+.settings-footer{
+  text-align:center;font-size:10px;padding-top:32px
+}
+.settings-footer.light{color:rgba(0,0,0,.2)}
+.settings-footer.dark{color:rgba(255,255,255,.2)}
+
+/* ===== TAB BAR ===== */
+.tab-bar{
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  display:flex;gap:0;padding:8px 20px;border-radius:100px;z-index:50;
+  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  box-shadow:0 4px 24px rgba(0,0,0,.12);
+  transition:background .3s,border-color .3s
+}
+.tab-bar.light{background:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.5)}
+.tab-bar.dark{background:rgba(30,30,30,.8);border:1px solid rgba(255,255,255,.1)}
+
+.tab-item{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:4px 20px;cursor:pointer;transition:color .2s;position:relative
+}
+.tab-item .tab-icon{font-size:22px;transition:all .2s}
+.tab-item .tab-label{font-size:10px;font-weight:500;transition:all .2s}
+.tab-item.active .tab-icon,.tab-item.active .tab-label{color:#1A56DB !important}
+.tab-item:not(.active) .tab-icon{opacity:.35}
+.tab-item:not(.active) .tab-label{opacity:.35}
+.tab-item.light .tab-icon,.tab-item.light .tab-label{color:#111827}
+.tab-item.dark .tab-icon,.tab-item.dark .tab-label{color:#fff}
+.tab-badge{
+  position:absolute;top:0;right:12px;width:14px;height:14px;border-radius:50%;
+  background:#EF4444;font-size:8px;font-weight:700;color:#fff;
+  display:flex;align-items:center;justify-content:center
+}
+
+/* ===== COMPARISON SECTION ===== */
+.comparison{margin-top:60px;width:100%;max-width:900px}
+.comparison h2{font-size:24px;font-weight:700;text-align:center;margin-bottom:32px;color:rgba(255,255,255,.8)}
+.comparison-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.comparison-card{
+  border-radius:24px;padding:24px;border:1px solid rgba(255,255,255,.06);
+  background:rgba(255,255,255,.02)
+}
+.comparison-card h3{font-size:16px;font-weight:700;margin-bottom:16px}
+.comparison-card.old h3{color:rgba(255,255,255,.4)}
+.comparison-card.new h3{color:#5B9CF6}
+.comparison-item{
+  display:flex;align-items:flex-start;gap:10px;padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:rgba(255,255,255,.5);line-height:1.5
+}
+.comparison-item:last-child{border-bottom:none}
+.comparison-item .tag{
+  flex-shrink:0;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;
+  text-transform:uppercase
+}
+.comparison-card.old .tag{background:rgba(239,68,68,.15);color:#EF4444}
+.comparison-card.new .tag{background:rgba(34,197,94,.15);color:#22C55E}
+
+/* ===== DESIGN TOKENS SECTION ===== */
+.tokens-section{margin-top:60px;width:100%;max-width:900px}
+.tokens-section h2{font-size:24px;font-weight:700;text-align:center;margin-bottom:32px;color:rgba(255,255,255,.8)}
+.token-group{margin-bottom:32px}
+.token-group h3{font-size:14px;font-weight:600;color:rgba(255,255,255,.4);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
+.color-swatches{display:flex;gap:6px;flex-wrap:wrap}
+.color-swatch{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  width:56px
+}
+.color-swatch .swatch{width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.06)}
+.color-swatch .name{font-size:9px;color:rgba(255,255,255,.3);text-align:center}
+
+.type-scale{display:flex;flex-direction:column;gap:8px}
+.type-row{display:flex;align-items:baseline;gap:16px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.type-row .label{font-size:11px;color:rgba(255,255,255,.3);width:70px;flex-shrink:0;text-align:right}
+.type-row .sample{color:rgba(255,255,255,.7)}
+.type-row .meta{font-size:10px;color:rgba(255,255,255,.2);flex-shrink:0;width:80px}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:440px){
+  .iphone-frame{width:100%;height:calc(100vw * 2.17);border-radius:0;padding:0}
+  .iphone-screen{border-radius:0}
+  .dynamic-island{display:none}
+  .page{padding:20px 10px}
+  .page-title{font-size:28px}
+  .comparison-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <h1 class="page-title">简天气 Redesign</h1>
+  <p class="page-subtitle">Ink & Atmosphere Design System</p>
+
+  <!-- Screen selector -->
+  <div class="screen-selector">
+    <div class="screen-btn active" data-screen="splash">启动屏</div>
+    <div class="screen-btn" data-screen="city">城市列表</div>
+    <div class="screen-btn" data-screen="detail">天气详情</div>
+    <div class="screen-btn" data-screen="settings">设置</div>
+  </div>
+
+  <!-- Mode toggle -->
+  <div class="mode-row">
+    <div class="mode-toggle">
+      <div class="mode-btn active" data-mode="dark">Dark</div>
+      <div class="mode-btn" data-mode="light">Light</div>
+    </div>
+  </div>
+
+  <!-- iPhone mockup -->
+  <div class="iphone-frame">
+    <div class="iphone-screen">
+      <div class="dynamic-island"></div>
+
+      <!-- ===== SPLASH ===== -->
+      <div class="screen-splash visible" id="screen-splash">
+        <div class="splash-particles" id="splash-particles"></div>
+        <div class="splash-icon">🌤</div>
+        <div class="splash-title">简天气</div>
+        <div class="splash-tagline">实时天气 · 智能预警</div>
+      </div>
+
+      <!-- ===== CITY LIST ===== -->
+      <div class="screen-city" id="screen-city">
+        <div class="city-bg dark" id="city-bg"></div>
+        <div class="city-content">
+          <div class="city-nav">
+            <div class="city-nav-title dark" id="city-nav-title">简天气</div>
+            <div class="city-nav-btn" id="city-nav-edit">✏️</div>
+          </div>
+
+          <!-- Search pill -->
+          <div class="search-pill dark" id="search-pill">
+            <span class="search-icon">🔍</span>
+            <span class="search-text">搜索城市...</span>
+          </div>
+
+          <!-- Section header -->
+          <div class="section-header">
+            <h2 class="dark" id="city-section-title">我的城市</h2>
+            <span class="add-btn">➕</span>
+          </div>
+
+          <!-- City cards -->
+          <div class="city-cards">
+            <div class="city-card dark selected" onclick="selectCity(this)">
+              <div class="accent-bar"></div>
+              <div class="weather-tint sunny"></div>
+              <div class="city-info">
+                <div class="city-name-row">
+                  <span class="loc-icon">📍</span>
+                  <span class="city-name dark">上海</span>
+                  <span class="alert-badge">2</span>
+                </div>
+                <div class="city-desc dark">晴</div>
+              </div>
+              <div class="city-temp">
+                <span class="weather-icon">☀️</span>
+                <span class="temp-value dark">28°</span>
+              </div>
+            </div>
+
+            <div class="city-card dark" onclick="selectCity(this)">
+              <div class="accent-bar"></div>
+              <div class="weather-tint cloudy"></div>
+              <div class="city-info">
+                <div class="city-name-row">
+                  <span class="city-name dark">北京</span>
+                </div>
+                <div class="city-desc dark">多云</div>
+              </div>
+              <div class="city-temp">
+                <span class="weather-icon">⛅</span>
+                <span class="temp-value dark">22°</span>
+              </div>
+            </div>
+
+            <div class="city-card dark" onclick="selectCity(this)">
+              <div class="accent-bar"></div>
+              <div class="weather-tint rainy"></div>
+              <div class="city-info">
+                <div class="city-name-row">
+                  <span class="city-name dark">深圳</span>
+                  <span class="alert-badge">1</span>
+                </div>
+                <div class="city-desc dark">小雨</div>
+              </div>
+              <div class="city-temp">
+                <span class="weather-icon">🌧</span>
+                <span class="temp-value dark">25°</span>
+              </div>
+            </div>
+
+            <div class="city-card dark" onclick="selectCity(this)">
+              <div class="accent-bar"></div>
+              <div class="weather-tint snowy"></div>
+              <div class="city-info">
+                <div class="city-name-row">
+                  <span class="city-name dark">成都</span>
+                </div>
+                <div class="city-desc dark">阴</div>
+              </div>
+              <div class="city-temp">
+                <span class="weather-icon">☁️</span>
+                <span class="temp-value dark">19°</span>
+              </div>
+            </div>
+
+            <div class="city-card dark" onclick="selectCity(this)">
+              <div class="accent-bar"></div>
+              <div class="city-info">
+                <div class="city-name-row">
+                  <span class="city-name dark">杭州</span>
+                </div>
+                <div class="city-desc dark">晴</div>
+              </div>
+              <div class="city-temp">
+                <span class="weather-icon">☀️</span>
+                <span class="temp-value dark">30°</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab bar -->
+        <div class="tab-bar dark" id="city-tab-bar">
+          <div class="tab-item dark active"><span class="tab-icon">📋</span><span class="tab-label">城市</span></div>
+          <div class="tab-item dark"><span class="tab-icon">🌤</span><span class="tab-label">详情</span></div>
+          <div class="tab-item dark"><span class="tab-icon">⚙️</span><span class="tab-label">设置</span></div>
+        </div>
+      </div>
+
+      <!-- ===== DETAIL ===== -->
+      <div class="screen-detail" id="screen-detail">
+        <div class="detail-bg sunny-light" id="detail-bg"></div>
+        <div class="detail-content">
+          <!-- Nav -->
+          <div class="detail-nav">
+            <div class="detail-nav-title light" id="detail-nav-title">上海</div>
+            <div class="refresh-btn">🔄</div>
+          </div>
+
+          <!-- Hero Card -->
+          <div class="hero-card light" id="hero-card" style="margin-top:24px">
+            <div class="hero-gradient sunny" id="hero-gradient"></div>
+            <div class="hero-top">
+              <span class="hero-icon">☀️</span>
+              <span class="hero-alert">2</span>
+            </div>
+            <div class="hero-temp light" id="hero-temp">28°</div>
+            <div class="hero-desc light" id="hero-desc">晴</div>
+            <div class="hero-feels light" id="hero-feels">体感 30°C</div>
+          </div>
+
+          <!-- Alert Banner -->
+          <div class="alert-banner light" id="alert-banner">
+            <div class="alert-banner-top">
+              <div class="alert-icon">⚠️</div>
+              <div class="alert-info">
+                <div class="alert-title light" id="alert-title">天气警报</div>
+                <div class="alert-count light" id="alert-count">2 条预警</div>
+              </div>
+              <span class="alert-chevron">▸</span>
+            </div>
+          </div>
+
+          <!-- Hourly Forecast -->
+          <div class="glass-card light" id="hourly-card">
+            <div class="card-header">
+              <span class="card-header-icon">🕐</span>
+              <span class="card-header-title light" id="hourly-title">逐时预报</span>
+            </div>
+            <div class="hourly-scroll">
+              <div class="hourly-item now">
+                <span class="hourly-time">现在</span>
+                <span class="weather-icon">☀️</span>
+                <span class="hourly-temp">28°</span>
+              </div>
+              <div class="hourly-item light" id="hourly-item-1">
+                <span class="hourly-time light">14:00</span>
+                <span class="weather-icon">⛅</span>
+                <span class="hourly-temp light">27°</span>
+                <div class="temp-bar" style="width:18px"></div>
+              </div>
+              <div class="hourly-item light" id="hourly-item-2">
+                <span class="hourly-time light">15:00</span>
+                <span class="weather-icon">⛅</span>
+                <span class="hourly-temp light">26°</span>
+                <div class="temp-bar" style="width:14px"></div>
+              </div>
+              <div class="hourly-item light" id="hourly-item-3">
+                <span class="hourly-time light">16:00</span>
+                <span class="weather-icon">☁️</span>
+                <span class="hourly-temp light">25°</span>
+                <div class="temp-bar" style="width:12px"></div>
+              </div>
+              <div class="hourly-item light" id="hourly-item-4">
+                <span class="hourly-time light">17:00</span>
+                <span class="weather-icon">🌧</span>
+                <span class="hourly-temp light">24°</span>
+                <div class="temp-bar" style="width:10px"></div>
+              </div>
+              <div class="hourly-item light" id="hourly-item-5">
+                <span class="hourly-time light">18:00</span>
+                <span class="weather-icon">🌧</span>
+                <span class="hourly-temp light">23°</span>
+                <div class="temp-bar" style="width:8px"></div>
+              </div>
+              <div class="hourly-item light" id="hourly-item-6">
+                <span class="hourly-time light">19:00</span>
+                <span class="weather-icon">☁️</span>
+                <span class="hourly-temp light">22°</span>
+                <div class="temp-bar" style="width:6px"></div>
+              </div>
+              <div class="hourly-item light" id="hourly-item-7">
+                <span class="hourly-time light">20:00</span>
+                <span class="weather-icon">🌙</span>
+                <span class="hourly-temp light">21°</span>
+                <div class="temp-bar" style="width:4px"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detail Grid -->
+          <div class="glass-card light" id="grid-card">
+            <div class="card-header">
+              <span class="card-header-icon">📊</span>
+              <span class="card-header-title light" id="grid-title">详细数据</span>
+            </div>
+            <div class="detail-grid">
+              <div class="detail-cell tint-blue light" id="cell-1">
+                <div class="cell-top">
+                  <div class="cell-icon blue">💧</div>
+                  <span class="cell-label light">湿度</span>
+                </div>
+                <span class="cell-value light">62%</span>
+              </div>
+              <div class="detail-cell tint-teal light" id="cell-2">
+                <div class="cell-top">
+                  <div class="cell-icon teal">💨</div>
+                  <span class="cell-label light">风速</span>
+                </div>
+                <span class="cell-value light">15 km/h</span>
+              </div>
+              <div class="detail-cell tint-purple light" id="cell-3">
+                <div class="cell-top">
+                  <div class="cell-icon purple">👁</div>
+                  <span class="cell-label light">能见度</span>
+                </div>
+                <span class="cell-value light">10 km</span>
+              </div>
+              <div class="detail-cell tint-amber light" id="cell-4">
+                <div class="cell-top">
+                  <div class="cell-icon amber">🌡</div>
+                  <span class="cell-label light">体感温度</span>
+                </div>
+                <span class="cell-value light">30°C</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- AQI / UV -->
+          <div class="glass-card light" id="aqi-card">
+            <div class="card-header">
+              <span class="card-header-icon">🍃</span>
+              <span class="card-header-title light" id="aqi-title">空气 & 紫外线</span>
+            </div>
+            <div class="aqi-row">
+              <div class="gauge light" id="aqi-gauge">
+                <div class="gauge-ring">
+                  <svg viewBox="0 0 72 72">
+                    <circle class="gauge-track light" cx="36" cy="36" r="30"></circle>
+                    <circle class="gauge-progress" cx="36" cy="36" r="30"
+                      stroke="#22C55E"
+                      stroke-dasharray="188.5"
+                      stroke-dashoffset="125.6"></circle>
+                  </svg>
+                  <div class="gauge-value">
+                    <span class="gauge-num light" id="aqi-num">42</span>
+                    <span class="gauge-label light" id="aqi-label">AQI</span>
+                  </div>
+                </div>
+                <span class="gauge-badge" style="background:rgba(34,197,94,.12);color:#22C55E">优</span>
+              </div>
+              <div class="gauge light" id="uv-gauge">
+                <div class="gauge-ring">
+                  <svg viewBox="0 0 72 72">
+                    <circle class="gauge-track light" cx="36" cy="36" r="30"></circle>
+                    <circle class="gauge-progress" cx="36" cy="36" r="30"
+                      stroke="#F59E0B"
+                      stroke-dasharray="188.5"
+                      stroke-dashoffset="102.8"></circle>
+                  </svg>
+                  <div class="gauge-value">
+                    <span class="gauge-num light" id="uv-num">5</span>
+                    <span class="gauge-label light" id="uv-label">紫外线</span>
+                  </div>
+                </div>
+                <span class="gauge-badge" style="background:rgba(245,158,11,.12);color:#F59E0B">中等</span>
+              </div>
+            </div>
+            <div class="pollutant-row">
+              <div class="pollutant-top">
+                <span class="pollutant-name light" id="pm25-name">PM2.5</span>
+                <span class="pollutant-val light" id="pm25-val">18 μg/m³</span>
+              </div>
+              <div class="pollutant-bar-track light"><div class="pollutant-bar-fill" style="width:12%;background:linear-gradient(90deg,#22C55E,rgba(34,197,94,.6))"></div></div>
+            </div>
+            <div class="pollutant-row">
+              <div class="pollutant-top">
+                <span class="pollutant-name light" id="pm10-name">PM10</span>
+                <span class="pollutant-val light" id="pm10-val">32 μg/m³</span>
+              </div>
+              <div class="pollutant-bar-track light"><div class="pollutant-bar-fill" style="width:16%;background:linear-gradient(90deg,#22C55E,rgba(34,197,94,.6))"></div></div>
+            </div>
+          </div>
+
+          <!-- 7-Day Forecast -->
+          <div class="glass-card light" id="forecast-card">
+            <div class="card-header">
+              <span class="card-header-icon">📅</span>
+              <span class="card-header-title light" id="forecast-title">7天预报</span>
+            </div>
+            <div class="forecast-row">
+              <span class="forecast-date today">今天</span>
+              <span class="forecast-icon">☀️</span>
+              <span class="forecast-min light">22°</span>
+              <div class="forecast-bar-track light"><div class="forecast-bar-fill" style="left:28%;width:50%"></div></div>
+              <span class="forecast-max light">30°</span>
+            </div>
+            <div class="forecast-row">
+              <span class="forecast-date light">5/11</span>
+              <span class="forecast-icon">⛅</span>
+              <span class="forecast-min light">20°</span>
+              <div class="forecast-bar-track light"><div class="forecast-bar-fill" style="left:20%;width:46%"></div></div>
+              <span class="forecast-max light">28°</span>
+            </div>
+            <div class="forecast-row">
+              <span class="forecast-date light">5/12</span>
+              <span class="forecast-icon">🌧</span>
+              <span class="forecast-min light">18°</span>
+              <div class="forecast-bar-track light"><div class="forecast-bar-fill" style="left:12%;width:40%"></div></div>
+              <span class="forecast-max light">25°</span>
+            </div>
+            <div class="forecast-row">
+              <span class="forecast-date light">5/13</span>
+              <span class="forecast-icon">🌧</span>
+              <span class="forecast-min light">17°</span>
+              <div class="forecast-bar-track light"><div class="forecast-bar-fill" style="left:8%;width:36%"></div></div>
+              <span class="forecast-max light">24°</span>
+            </div>
+            <div class="forecast-row">
+              <span class="forecast-date light">5/14</span>
+              <span class="forecast-icon">⛅</span>
+              <span class="forecast-min light">19°</span>
+              <div class="forecast-bar-track light"><div class="forecast-bar-fill" style="left:16%;width:44%"></div></div>
+              <span class="forecast-max light">27°</span>
+            </div>
+            <div class="forecast-row">
+              <span class="forecast-date light">5/15</span>
+              <span class="forecast-icon">☀️</span>
+              <span class="forecast-min light">21°</span>
+              <div class="forecast-bar-track light"><div class="forecast-bar-fill" style="left:24%;width:52%"></div></div>
+              <span class="forecast-max light">31°</span>
+            </div>
+            <div class="forecast-row">
+              <span class="forecast-date light">5/16</span>
+              <span class="forecast-icon">☀️</span>
+              <span class="forecast-min light">23°</span>
+              <div class="forecast-bar-track light"><div class="forecast-bar-fill" style="left:32%;width:54%"></div></div>
+              <span class="forecast-max light">33°</span>
+            </div>
+          </div>
+
+          <div class="updated-time light" id="updated-time">更新于 13:24</div>
+        </div>
+
+        <!-- Tab bar -->
+        <div class="tab-bar light" id="detail-tab-bar">
+          <div class="tab-item light"><span class="tab-icon">📋</span><span class="tab-label">城市</span></div>
+          <div class="tab-item light active"><span class="tab-icon">🌤</span><span class="tab-label">详情</span><span class="tab-badge">2</span></div>
+          <div class="tab-item light"><span class="tab-icon">⚙️</span><span class="tab-label">设置</span></div>
+        </div>
+      </div>
+
+      <!-- ===== SETTINGS ===== -->
+      <div class="screen-settings" id="screen-settings">
+        <div class="settings-bg dark" id="settings-bg"></div>
+        <div class="settings-content">
+          <div class="settings-header">
+            <div class="icon">🌤</div>
+            <div class="title dark" id="settings-title">简天气</div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-label">数据</div>
+            <div class="settings-group-card dark" id="settings-card-1">
+              <div class="settings-row">
+                <div class="settings-row-icon blue">🔄</div>
+                <span class="settings-row-label dark" id="settings-refresh">刷新所有城市数据</span>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-icon purple">🏙</div>
+                <span class="settings-row-label dark">城市数量</span>
+                <span class="settings-row-value dark">5</span>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-icon amber">⚠️</div>
+                <span class="settings-row-label dark">有预警城市</span>
+                <span class="settings-row-value dark">2</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-label">关于</div>
+            <div class="settings-group-card dark" id="settings-card-2">
+              <div class="settings-row">
+                <div class="settings-row-icon blue">☁️</div>
+                <span class="settings-row-label dark">天气数据来源</span>
+                <span class="settings-row-value dark">Open-Meteo</span>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-icon teal">ℹ️</div>
+                <span class="settings-row-label dark">版本</span>
+                <span class="settings-row-value dark">v1.0.0</span>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-icon gray">📱</div>
+                <span class="settings-row-label dark">支持 iOS</span>
+                <span class="settings-row-value dark">iOS 16+</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-label">图例</div>
+            <div class="settings-group-card dark" id="settings-card-3">
+              <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px">
+                <div class="legend-row"><div class="legend-dot" style="background:#3B82F6"></div><span class="legend-text dark">低风险</span></div>
+                <div class="legend-row"><div class="legend-dot" style="background:#F59E0B"></div><span class="legend-text dark">中等预警</span></div>
+                <div class="legend-row"><div class="legend-dot" style="background:#F97316"></div><span class="legend-text dark">高预警</span></div>
+                <div class="legend-row"><div class="legend-dot" style="background:#EF4444"></div><span class="legend-text dark">极端预警</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-footer dark" id="settings-footer">简天气 — 实时天气，智能预警</div>
+        </div>
+
+        <!-- Tab bar -->
+        <div class="tab-bar dark" id="settings-tab-bar">
+          <div class="tab-item dark"><span class="tab-icon">📋</span><span class="tab-label">城市</span></div>
+          <div class="tab-item dark"><span class="tab-icon">🌤</span><span class="tab-label">详情</span></div>
+          <div class="tab-item dark active"><span class="tab-icon">⚙️</span><span class="tab-label">设置</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== COMPARISON SECTION ===== -->
+  <div class="comparison">
+    <h2>设计变更对比</h2>
+    <div class="comparison-grid">
+      <div class="comparison-card old">
+        <h3>旧设计</h3>
+        <div class="comparison-item"><span class="tag">卡片</span>统一 .ultraThinMaterial + 24pt 圆角 + 相同阴影</div>
+        <div class="comparison-item"><span class="tag">颜色</span>默认蓝橙色，无统一设计语言</div>
+        <div class="comparison-item"><span class="tag">字体</span>系统默认字体，无层级体系</div>
+        <div class="comparison-item"><span class="tag">Tab</span>标准 iOS TabView</div>
+        <div class="comparison-item"><span class="tag">列表</span>复杂天气特效叠加，视觉杂乱</div>
+        <div class="comparison-item"><span class="tag">详情</span>垂直堆叠的相似卡片，无差异化</div>
+        <div class="comparison-item"><span class="tag">设置</span>原生 iOS List 样式</div>
+        <div class="comparison-item"><span class="tag">背景</span>厚重粒子动画，性能开销大</div>
+      </div>
+      <div class="comparison-card new">
+        <h3>新设计</h3>
+        <div class="comparison-item"><span class="tag">卡片</span>三种差异化风格：GlassCard / TintedCard / InsetRow</div>
+        <div class="comparison-item"><span class="tag">颜色</span>Semantic Token 体系：品牌色 + 氛围色 + 天气色</div>
+        <div class="comparison-item"><span class="tag">字体</span>五级体系：display / title / body / label / data，中文优化</div>
+        <div class="comparison-item"><span class="tag">Tab</span>浮动玻璃胶囊 Tab Bar</div>
+        <div class="comparison-item"><span class="tag">列表</span>天气着色玻璃卡片 + 左边缘色条选中态</div>
+        <div class="comparison-item"><span class="tag">详情</span>按功能区分：Hero 渐变 / Glass / Tinted 风格</div>
+        <div class="comparison-item"><span class="tag">设置</span>自定义分组卡片 + 语义着色图标</div>
+        <div class="comparison-item"><span class="tag">背景</span>大气渐变 + 轻量 Canvas 粒子层</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DESIGN TOKENS ===== -->
+  <div class="tokens-section">
+    <h2>Design Tokens</h2>
+
+    <div class="token-group">
+      <h3>Color Palette</h3>
+      <div class="color-swatches">
+        <div class="color-swatch"><div class="swatch" style="background:#1A56DB"></div><span class="name">Primary</span></div>
+        <div class="color-swatch"><div class="swatch" style="background:#5B9CF6"></div><span class="name">Primary Dark</span></div>
+        <div class="color-swatch"><div class="swatch" style="background:#E8783A"></div><span class="name">Secondary</span></div>
+        <div class="color-swatch"><div class="swatch" style="background:#22C55E"></div><span class="name">Success</span></div>
+        <div class="color-swatch"><div class="swatch" style="background:#F59E0B"></div><span class="name">Warning</span></div>
+        <div class="color-swatch"><div class="swatch" style="background:#EF4444"></div><span class="name">Error</span></div>
+        <div class="color-swatch"><div class="swatch" style="background:#3B82F6"></div><span class="name">Info</span></div>
+        <div class="color-swatch"><div class="swatch" style="background:#06B6D4"></div><span class="name">Teal</span></div>
+        <div class="color-swatch"><div class="swatch" style="background:#8B5CF6"></div><span class="name">Purple</span></div>
+        <div class="color-swatch"><div class="swatch" style="background:#A78BFA"></div><span class="name">Thunder</span></div>
+        <div class="color-swatch"><div class="swatch" style="background:#BAE6FD"></div><span class="name">Snow</span></div>
+        <div class="color-swatch"><div class="swatch" style="background:#111827"></div><span class="name">Gray 900</span></div>
+        <div class="color-swatch"><div class="swatch" style="background:#6B7280"></div><span class="name">Gray 500</span></div>
+        <div class="color-swatch"><div class="swatch" style="background:#F8FAFC"></div><span class="name">Surface</span></div>
+      </div>
+    </div>
+
+    <div class="token-group">
+      <h3>Typography Scale</h3>
+      <div class="type-scale">
+        <div class="type-row"><span class="label">display1</span><span class="sample" style="font-size:72px;font-weight:200">28°</span><span class="meta">96pt thin</span></div>
+        <div class="type-row"><span class="label">display2</span><span class="sample" style="font-size:48px;font-weight:200">28°</span><span class="meta">72pt thin</span></div>
+        <div class="type-row"><span class="label">title1</span><span class="sample" style="font-size:28px;font-weight:700">简天气</span><span class="meta">28pt bold</span></div>
+        <div class="type-row"><span class="label">title2</span><span class="sample" style="font-size:22px;font-weight:600">逐时预报</span><span class="meta">22pt semibold</span></div>
+        <div class="type-row"><span class="label">title3</span><span class="sample" style="font-size:18px;font-weight:500">详细数据</span><span class="meta">18pt medium</span></div>
+        <div class="type-row"><span class="label">body1</span><span class="sample" style="font-size:17px;font-weight:500">上海市 · 晴</span><span class="meta">17pt medium</span></div>
+        <div class="type-row"><span class="label">body2</span><span class="sample" style="font-size:15px">搜索城市...</span><span class="meta">15pt regular</span></div>
+        <div class="type-row"><span class="label">data1</span><span class="sample" style="font-size:36px;font-weight:600">42</span><span class="meta">36pt semibold</span></div>
+        <div class="type-row"><span class="label">data3</span><span class="sample" style="font-size:20px;font-weight:600">62%</span><span class="meta">20pt semibold</span></div>
+      </div>
+    </div>
+
+    <div class="token-group">
+      <h3>Spacing & Radius</h3>
+      <div style="display:flex;gap:24px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:4px">SPACING</span>
+          <span style="font-size:13px;color:rgba(255,255,255,.5)">xxs 4 · xs 6 · sm 8 · md 12 · lg 16 · xl 20 · xxl 24 · xxxl 32</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:4px">CORNER RADIUS</span>
+          <span style="font-size:13px;color:rgba(255,255,255,.5)">xs 4 · sm 8 · md 12 · lg 16 · xl 20 · xxl 24 · xxxl 32 · full ∞</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== State =====
+let currentScreen = 'splash';
+let currentMode = 'dark';
+
+// ===== Screen switching =====
+const screens = ['splash','city','detail','settings'];
+const screenBtns = document.querySelectorAll('.screen-btn');
+
+screenBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const screen = btn.dataset.screen;
+    if (screen === currentScreen) return;
+    currentScreen = screen;
+
+    screenBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    screens.forEach(s => {
+      const el = document.getElementById('screen-' + s);
+      el.classList.remove('visible');
+    });
+    document.getElementById('screen-' + screen).classList.add('visible');
+  });
+});
+
+// ===== Mode toggle =====
+const modeBtns = document.querySelectorAll('.mode-btn');
+modeBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const mode = btn.dataset.mode;
+    if (mode === currentMode) return;
+    currentMode = mode;
+
+    modeBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    applyMode(mode);
+  });
+});
+
+function applyMode(mode) {
+  const isDark = mode === 'dark';
+
+  // City list
+  const cityBg = document.getElementById('city-bg');
+  cityBg.className = 'city-bg ' + (isDark ? 'dark' : 'light');
+
+  const cityNavTitle = document.getElementById('city-nav-title');
+  cityNavTitle.className = 'city-nav-title ' + (isDark ? 'dark' : 'light');
+
+  const searchPill = document.getElementById('search-pill');
+  searchPill.className = 'search-pill ' + (isDark ? 'dark' : 'light');
+
+  const citySectionTitle = document.getElementById('city-section-title');
+  citySectionTitle.className = (isDark ? 'dark' : 'light');
+
+  // City cards
+  document.querySelectorAll('.city-card').forEach(card => {
+    card.className = card.className.replace(/\b(light|dark)\b/g, '').trim();
+    card.classList.add(isDark ? 'dark' : 'light');
+  });
+  document.querySelectorAll('.city-name').forEach(el => {
+    el.className = 'city-name ' + (isDark ? 'dark' : 'light');
+  });
+  document.querySelectorAll('.city-desc').forEach(el => {
+    el.className = 'city-desc ' + (isDark ? 'dark' : 'light');
+  });
+  document.querySelectorAll('.temp-value').forEach(el => {
+    el.className = 'temp-value ' + (isDark ? 'dark' : 'light');
+  });
+
+  // City tab bar
+  const cityTabBar = document.getElementById('city-tab-bar');
+  cityTabBar.className = 'tab-bar ' + (isDark ? 'dark' : 'light');
+  cityTabBar.querySelectorAll('.tab-item').forEach(ti => {
+    ti.className = ti.className.replace(/\b(light|dark)\b/g, '').trim();
+    ti.classList.add(isDark ? 'dark' : 'light');
+  });
+
+  // Detail
+  const detailBg = document.getElementById('detail-bg');
+  detailBg.className = 'detail-bg ' + (isDark ? 'sunny-dark' : 'sunny-light');
+
+  const heroCard = document.getElementById('hero-card');
+  heroCard.className = 'hero-card ' + (isDark ? 'dark' : 'light');
+
+  const heroGradient = document.getElementById('hero-gradient');
+  heroGradient.className = 'hero-gradient ' + (isDark ? 'sunny-dark' : 'sunny');
+
+  ['hero-temp','hero-desc','hero-feels'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = id.replace('hero-','hero-') + ' ' + (isDark ? 'dark' : 'light');
+  });
+  // Fix class names
+  document.getElementById('hero-temp').className = 'hero-temp ' + (isDark ? 'dark' : 'light');
+  document.getElementById('hero-desc').className = 'hero-desc ' + (isDark ? 'dark' : 'light');
+  document.getElementById('hero-feels').className = 'hero-feels ' + (isDark ? 'dark' : 'light');
+
+  document.getElementById('detail-nav-title').className = 'detail-nav-title ' + (isDark ? 'dark' : 'light');
+
+  // Alert banner
+  document.getElementById('alert-banner').className = 'alert-banner ' + (isDark ? 'dark' : 'light');
+  document.getElementById('alert-title').className = 'alert-title ' + (isDark ? 'dark' : 'light');
+  document.getElementById('alert-count').className = 'alert-count ' + (isDark ? 'dark' : 'light');
+
+  // Glass cards
+  ['hourly-card','grid-card','aqi-card','forecast-card'].forEach(id => {
+    document.getElementById(id).className = 'glass-card ' + (isDark ? 'dark' : 'light');
+  });
+
+  // Card headers
+  ['hourly-title','grid-title','aqi-title','forecast-title'].forEach(id => {
+    document.getElementById(id).className = 'card-header-title ' + (isDark ? 'dark' : 'light');
+  });
+
+  // Hourly items
+  for (let i = 1; i <= 7; i++) {
+    const item = document.getElementById('hourly-item-' + i);
+    if (item) {
+      item.className = 'hourly-item ' + (isDark ? 'dark' : 'light');
+      item.querySelectorAll('.hourly-time').forEach(t => t.className = 'hourly-time ' + (isDark ? 'dark' : 'light'));
+      item.querySelectorAll('.hourly-temp').forEach(t => t.className = 'hourly-temp ' + (isDark ? 'dark' : 'light'));
+    }
+  }
+
+  // Detail cells
+  for (let i = 1; i <= 4; i++) {
+    const cell = document.getElementById('cell-' + i);
+    if (cell) {
+      const tints = ['tint-blue','tint-teal','tint-purple','tint-amber'];
+      cell.className = 'detail-cell ' + tints[i-1] + ' ' + (isDark ? 'dark' : 'light');
+      cell.querySelectorAll('.cell-label').forEach(l => l.className = 'cell-label ' + (isDark ? 'dark' : 'light'));
+      cell.querySelectorAll('.cell-value').forEach(v => v.className = 'cell-value ' + (isDark ? 'dark' : 'light'));
+    }
+  }
+
+  // AQI gauges
+  document.getElementById('aqi-gauge').className = 'gauge ' + (isDark ? 'dark' : 'light');
+  document.getElementById('uv-gauge').className = 'gauge ' + (isDark ? 'dark' : 'light');
+  document.getElementById('aqi-num').className = 'gauge-num ' + (isDark ? 'dark' : 'light');
+  document.getElementById('aqi-label').className = 'gauge-label ' + (isDark ? 'dark' : 'light');
+  document.getElementById('uv-num').className = 'gauge-num ' + (isDark ? 'dark' : 'light');
+  document.getElementById('uv-label').className = 'gauge-label ' + (isDark ? 'dark' : 'light');
+
+  // Pollutant rows
+  ['pm25-name','pm10-name'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = 'pollutant-name ' + (isDark ? 'dark' : 'light');
+  });
+  ['pm25-val','pm10-val'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = 'pollutant-val ' + (isDark ? 'dark' : 'light');
+  });
+  document.querySelectorAll('.pollutant-bar-track').forEach(el => {
+    el.className = 'pollutant-bar-track ' + (isDark ? 'dark' : 'light');
+  });
+
+  // Forecast
+  document.querySelectorAll('.forecast-date').forEach(el => {
+    if (!el.classList.contains('today')) el.className = 'forecast-date ' + (isDark ? 'dark' : 'light');
+  });
+  document.querySelectorAll('.forecast-min').forEach(el => el.className = 'forecast-min ' + (isDark ? 'dark' : 'light'));
+  document.querySelectorAll('.forecast-max').forEach(el => el.className = 'forecast-max ' + (isDark ? 'dark' : 'light'));
+  document.querySelectorAll('.forecast-bar-track').forEach(el => el.className = 'forecast-bar-track ' + (isDark ? 'dark' : 'light'));
+
+  document.getElementById('updated-time').className = 'updated-time ' + (isDark ? 'dark' : 'light');
+
+  // Detail tab bar
+  const detailTabBar = document.getElementById('detail-tab-bar');
+  detailTabBar.className = 'tab-bar ' + (isDark ? 'dark' : 'light');
+  detailTabBar.querySelectorAll('.tab-item').forEach(ti => {
+    ti.className = ti.className.replace(/\b(light|dark)\b/g, '').trim();
+    ti.classList.add(isDark ? 'dark' : 'light');
+  });
+
+  // SVG gauge tracks
+  document.querySelectorAll('.gauge-track').forEach(el => {
+    el.classList.remove('light','dark');
+    el.classList.add(isDark ? 'dark' : 'light');
+  });
+
+  // Settings
+  document.getElementById('settings-bg').className = 'settings-bg ' + (isDark ? 'dark' : 'light');
+  document.getElementById('settings-title').className = 'title ' + (isDark ? 'dark' : 'light');
+  ['settings-card-1','settings-card-2','settings-card-3'].forEach(id => {
+    document.getElementById(id).className = 'settings-group-card ' + (isDark ? 'dark' : 'light');
+  });
+  document.querySelectorAll('.settings-row-label').forEach(el => el.className = 'settings-row-label ' + (isDark ? 'dark' : 'light'));
+  document.querySelectorAll('.settings-row-value').forEach(el => el.className = 'settings-row-value ' + (isDark ? 'dark' : 'light'));
+  document.querySelectorAll('.legend-text').forEach(el => el.className = 'legend-text ' + (isDark ? 'dark' : 'light'));
+  document.getElementById('settings-footer').className = 'settings-footer ' + (isDark ? 'dark' : 'light');
+
+  // Settings tab bar
+  const settingsTabBar = document.getElementById('settings-tab-bar');
+  settingsTabBar.className = 'tab-bar ' + (isDark ? 'dark' : 'light');
+  settingsTabBar.querySelectorAll('.tab-item').forEach(ti => {
+    ti.className = ti.className.replace(/\b(light|dark)\b/g, '').trim();
+    ti.classList.add(isDark ? 'dark' : 'light');
+  });
+}
+
+// ===== City card selection =====
+function selectCity(card) {
+  document.querySelectorAll('.city-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+}
+
+// ===== Generate splash particles =====
+const particlesContainer = document.getElementById('splash-particles');
+for (let i = 0; i < 30; i++) {
+  const p = document.createElement('div');
+  p.className = 'splash-particle';
+  p.style.left = (Math.random() * 100) + '%';
+  p.style.top = (100 + Math.random() * 100) + '%';
+  p.style.animationDelay = (Math.random() * 15) + 's';
+  p.style.animationDuration = (10 + Math.random() * 10) + 's';
+  p.style.width = (1 + Math.random() * 3) + 'px';
+  p.style.height = p.style.width;
+  p.style.opacity = 0.05 + Math.random() * 0.1;
+  particlesContainer.appendChild(p);
+}
+</script>
+
+</body>
+</html>
