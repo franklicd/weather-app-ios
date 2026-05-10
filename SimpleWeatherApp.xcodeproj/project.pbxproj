@@ -7,14 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A018 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = F019 /* DesignTokens.swift */; };
+		0052EAAEDCE5FB32A2E4EE3A /* WeatherDataConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBC16FB58C9B30EC7CFFF17 /* WeatherDataConversionTests.swift */; };
+		46DE3C5CB13766B4D93E885F /* JWTGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5732AAE5AF24A0F902F5DE4B /* JWTGenerator.swift */; };
+		5425EE46FA01DAEFBBDEF611 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4250DAE9524671FDD1E61A7F /* Config.swift */; };
+		64F9187402A6A3CDAF9F4131 /* RegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ECC8C4B7300E5DA9EC613BB /* RegressionTests.swift */; };
+		8FC461C37BB0DD8345B05DD5 /* JWTGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C67A48C001E069B5F30A90E /* JWTGeneratorTests.swift */; };
 		A001 /* WeatherApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001 /* WeatherApp.swift */; };
 		A002 /* WeatherModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F002 /* WeatherModels.swift */; };
 		A003 /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = F003 /* WeatherHelpers.swift */; };
 		A004 /* CityDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F004 /* CityDataService.swift */; };
 		A005 /* WeatherStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F005 /* WeatherStore.swift */; };
 		A006 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F006 /* LocationService.swift */; };
-		A016 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F017 /* NotificationManager.swift */; };
-		A017 /* BackgroundTaskManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F018 /* BackgroundTaskManager.swift */; };
 		A007 /* CityListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F007 /* CityListView.swift */; };
 		A008 /* CityDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F008 /* CityDetailView.swift */; };
 		A009 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F009 /* SettingsView.swift */; };
@@ -24,6 +28,9 @@
 		A013 /* WeatherBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F014 /* WeatherBackgroundView.swift */; };
 		A014 /* ImprovedWeatherAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = F015 /* ImprovedWeatherAnimations.swift */; };
 		A015 /* AlertBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F016 /* AlertBannerView.swift */; };
+		A016 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F017 /* NotificationManager.swift */; };
+		A017 /* BackgroundTaskManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F018 /* BackgroundTaskManager.swift */; };
+		FF26B8BDE7E5855B5848C5A0 /* APITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FFD0A5F4F5075B8502B5E8 /* APITests.swift */; };
 		T001 /* WeatherStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TF001 /* WeatherStoreTests.swift */; };
 		T002 /* WeatherModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TF002 /* WeatherModelsTests.swift */; };
 		T003 /* AlertGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TF003 /* AlertGeneratorTests.swift */; };
@@ -40,6 +47,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F019 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
+		1ECC8C4B7300E5DA9EC613BB /* RegressionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RegressionTests.swift; path = SimpleWeatherAppTests/RegressionTests.swift; sourceTree = "<group>"; };
+		2CBC16FB58C9B30EC7CFFF17 /* WeatherDataConversionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeatherDataConversionTests.swift; path = SimpleWeatherAppTests/WeatherDataConversionTests.swift; sourceTree = "<group>"; };
+		3C67A48C001E069B5F30A90E /* JWTGeneratorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = JWTGeneratorTests.swift; path = SimpleWeatherAppTests/JWTGeneratorTests.swift; sourceTree = "<group>"; };
+		4250DAE9524671FDD1E61A7F /* Config.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Config.swift; path = SimpleWeatherApp/Services/Config.swift; sourceTree = "<group>"; };
+		5732AAE5AF24A0F902F5DE4B /* JWTGenerator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = JWTGenerator.swift; path = SimpleWeatherApp/Utils/JWTGenerator.swift; sourceTree = "<group>"; };
+		99FFD0A5F4F5075B8502B5E8 /* APITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = APITests.swift; path = SimpleWeatherAppTests/APITests.swift; sourceTree = "<group>"; };
 		F001 /* WeatherApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherApp.swift; sourceTree = "<group>"; };
 		F002 /* WeatherModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherModels.swift; sourceTree = "<group>"; };
 		F003 /* WeatherHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherHelpers.swift; sourceTree = "<group>"; };
@@ -83,10 +97,11 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		APPGRP /* WeatherApp */ = {
+		APPGRP /* SimpleWeatherApp */ = {
 			isa = PBXGroup;
 			children = (
 				F001 /* WeatherApp.swift */,
+				DESIGNGRP /* Design */,
 				MODELGRP /* Models */,
 				HELPERGRP /* Helpers */,
 				SERVICEGRP /* Services */,
@@ -96,6 +111,14 @@
 				F013 /* PrivacyInfo.xcprivacy */,
 			);
 			path = SimpleWeatherApp;
+			sourceTree = "<group>";
+		};
+		DESIGNGRP /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				F019 /* DesignTokens.swift */,
+			);
+			path = Design;
 			sourceTree = "<group>";
 		};
 		HELPERGRP /* Helpers */ = {
@@ -109,9 +132,15 @@
 		MAINGRP = {
 			isa = PBXGroup;
 			children = (
-				APPGRP /* WeatherApp */,
+				APPGRP /* SimpleWeatherApp */,
 				TESTGRP /* WeatherAppTests */,
 				PRODGRP /* Products */,
+				4250DAE9524671FDD1E61A7F /* Config.swift */,
+				5732AAE5AF24A0F902F5DE4B /* JWTGenerator.swift */,
+				3C67A48C001E069B5F30A90E /* JWTGeneratorTests.swift */,
+				2CBC16FB58C9B30EC7CFFF17 /* WeatherDataConversionTests.swift */,
+				99FFD0A5F4F5075B8502B5E8 /* APITests.swift */,
+				1ECC8C4B7300E5DA9EC613BB /* RegressionTests.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -224,7 +253,7 @@
 					};
 				};
 			};
-			buildConfigurationList = PROJCFGLIST /* Build configuration list for PBXProject "WeatherApp" */;
+			buildConfigurationList = PROJCFGLIST /* Build configuration list for PBXProject "SimpleWeatherApp" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = zh_CN;
 			hasScannedForEncodings = 0;
@@ -270,6 +299,7 @@
 				A006 /* LocationService.swift in Sources */,
 				A016 /* NotificationManager.swift in Sources */,
 				A017 /* BackgroundTaskManager.swift in Sources */,
+				A018 /* DesignTokens.swift in Sources */,
 				A007 /* CityListView.swift in Sources */,
 				A008 /* CityDetailView.swift in Sources */,
 				A009 /* SettingsView.swift in Sources */,
@@ -277,6 +307,8 @@
 				A013 /* WeatherBackgroundView.swift in Sources */,
 				A014 /* ImprovedWeatherAnimations.swift in Sources */,
 				A015 /* AlertBannerView.swift in Sources */,
+				5425EE46FA01DAEFBBDEF611 /* Config.swift in Sources */,
+				46DE3C5CB13766B4D93E885F /* JWTGenerator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -287,6 +319,10 @@
 				T001 /* WeatherStoreTests.swift in Sources */,
 				T002 /* WeatherModelsTests.swift in Sources */,
 				T003 /* AlertGeneratorTests.swift in Sources */,
+				8FC461C37BB0DD8345B05DD5 /* JWTGeneratorTests.swift in Sources */,
+				0052EAAEDCE5FB32A2E4EE3A /* WeatherDataConversionTests.swift in Sources */,
+				FF26B8BDE7E5855B5848C5A0 /* APITests.swift in Sources */,
+				64F9187402A6A3CDAF9F4131 /* RegressionTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -532,7 +568,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		PROJCFGLIST /* Build configuration list for PBXProject "WeatherApp" */ = {
+		PROJCFGLIST /* Build configuration list for PBXProject "SimpleWeatherApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DEBUGCFG /* Debug */,
