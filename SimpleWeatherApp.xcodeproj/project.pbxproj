@@ -36,6 +36,10 @@
 		T002 /* WeatherModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TF002 /* WeatherModelsTests.swift */; };
 		T003 /* AlertGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TF003 /* AlertGeneratorTests.swift */; };
 		A020 /* SectionComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F021 /* SectionComponents.swift */; };
+		A021 /* HourlyForecast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F022 /* HourlyForecast.swift */; };
+		A022 /* HeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F023 /* HeroCard.swift */; };
+			A023 /* WeatherDataComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F024 /* WeatherDataComponents.swift */; };
+	A023 /* DailyForecast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F024 /* DailyForecast.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,6 +85,10 @@
 		TF002 /* WeatherModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherModelsTests.swift; sourceTree = "<group>"; };
 		TF003 /* AlertGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertGeneratorTests.swift; sourceTree = "<group>"; };
 		F021 /* SectionComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionComponents.swift; sourceTree = "<group>"; };
+		F022 /* HourlyForecast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HourlyForecast.swift; sourceTree = "<group>"; };
+		F023 /* HeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroCard.swift; sourceTree = "<group>"; };
+			F024 /* WeatherDataComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherDataComponents.swift; sourceTree = "<group>"; };
+	F024 /* DailyForecast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyForecast.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -182,6 +190,8 @@
 			isa = PBXGroup;
 			children = (
 				F021 /* SectionComponents.swift */,
+				F022 /* HourlyForecast.swift */,
+				F024 /* WeatherDataComponents.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -324,6 +334,8 @@
 				A015 /* AlertBannerView.swift in Sources */,
 				5425EE46FA01DAEFBBDEF611 /* Config.swift in Sources */,
 				A020 /* SectionComponents.swift in Sources */,
+				A021 /* HourlyForecast.swift in Sources */,
+				A023 /* WeatherDataComponents.swift in Sources */,
 				46DE3C5CB13766B4D93E885F /* JWTGenerator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
