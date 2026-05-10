@@ -197,7 +197,7 @@ struct RedesignedHourlyItem: View {
                     ? LinearGradient(
                         colors: [
                             DTColor.Brand.primaryLight,
-                            Color(hex: "#3B82F6")
+                            DTColor.Semantic.info
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -212,7 +212,7 @@ struct RedesignedHourlyItem: View {
             )
             .shadow(
                 color: item.isNow
-                    ? Color(hex: "#3B82F6").opacity(0.35)
+                    ? DTColor.Semantic.info.opacity(0.35)
                     : .clear,
                 radius: 10,
                 x: 0,

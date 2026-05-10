@@ -84,18 +84,27 @@ private struct SettingsRow: View {
 
 // MARK: - View Extension: Labeled
 
-extension View {
-    /// Places an uppercase section label above this view.
-    func labeled(_ label: String) -> some View {
+struct LabeledModifier: ViewModifier {
+    let label: String
+    @Environment(\.colorScheme) private var colorScheme
+
+    func body(content: Content) -> some View {
         VStack(alignment: .leading, spacing: DTSpacing.sm) {
             Text(label.uppercased())
                 .font(DTFont.caption1.font)
                 .fontWeight(.semibold)
                 .tracking(1)
-                .foregroundStyle(DTColor.Light.gray500)
+                .foregroundStyle(colorScheme == .dark ? DTColor.Dark.gray500 : DTColor.Light.gray500)
                 .padding(.leading, DTSpacing.md)
-            self
+            content
         }
+    }
+}
+
+extension View {
+    /// Places an uppercase section label above this view.
+    func labeled(_ label: String) -> some View {
+        modifier(LabeledModifier(label: label))
     }
 }
 
@@ -121,8 +130,8 @@ struct SettingsView: View {
             ZStack {
                 // Solid background
                 (colorScheme == .dark
-                    ? Color(hex: "0A0A0A")
-                    : Color(hex: "F8FAFC"))
+                    ? DTColor.Background.dark
+                    : DTColor.Background.light)
                     .ignoresSafeArea()
 
                 ScrollView {

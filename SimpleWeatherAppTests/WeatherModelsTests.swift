@@ -1,5 +1,5 @@
 import XCTest
-@testable import SimpleWeatherApp
+@testable import WeatherApp
 
 final class WeatherModelsTests: XCTestCase {
 

@@ -402,6 +402,8 @@ enum CityDataService {
     static func searchGlobal(query: String) async -> [GeocodingResult] {
         let trimmed = query.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return [] }
+
+        // 使用Open-Meteo城市搜索API
         var components = URLComponents(string: "https://geocoding-api.open-meteo.com/v1/search")!
         components.queryItems = [
             .init(name: "name", value: trimmed),
@@ -418,6 +420,59 @@ enum CityDataService {
             return []
         }
     }
+
+    // MARK: - 和风天气城市搜索（暂时注释）
+    /*
+    // 优先使用和风天气城市搜索
+    if !AppConfig.qWeatherApiKey.isEmpty, AppConfig.qWeatherApiKey != "YOUR_API_KEY_HERE" {
+        var components = URLComponents(string: "\(AppConfig.qWeatherGeoUrl)/city/lookup")!
+        components.queryItems = [
+            .init(name: "location", value: trimmed),
+            .init(name: "number", value: "15"),
+            .init(name: "lang", value: "zh")
+        ]
+        guard let url = components.url else { return [] }
+
+        do {
+            var request = URLRequest(url: url)
+            guard !AppConfig.qWeatherApiSecret.isEmpty,
+                  AppConfig.qWeatherApiSecret != "YOUR_API_SECRET_HERE",
+                  let token = JWTGenerator.generateQWeatherToken(
+                      apiKey: AppConfig.qWeatherApiKey,
+                      apiSecret: AppConfig.qWeatherApiSecret,
+                      expiresIn: AppConfig.jwtExpiresIn
+                  ) else {
+                #if DEBUG
+                print("请先配置和风天气API Key和Secret")
+                #endif
+                return []
+            }
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let response = try JSONDecoder().decode(QWeatherResponse<QWeatherLocation>.self, from: data)
+            guard response.code == "200", let locations = response.location else {
+                return []
+            }
+            // 转换为现有GeocodingResult格式
+            return locations.enumerated().map { index, loc in
+                GeocodingResult(
+                    id: index,
+                    name: loc.name,
+                    latitude: Double(loc.lat) ?? 0,
+                    longitude: Double(loc.lon) ?? 0,
+                    country: loc.country,
+                    admin1: loc.adm1,
+                    country_code: nil
+                )
+            }
+        } catch {
+            #if DEBUG
+            print("和风城市搜索错误: \(error)")
+            #endif
+        }
+    }
+    */
 
     private static func defaultCities() -> [CityWeather] {
         [

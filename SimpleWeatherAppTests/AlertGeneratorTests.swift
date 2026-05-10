@@ -1,5 +1,5 @@
 import XCTest
-@testable import SimpleWeatherApp
+@testable import WeatherApp
 
 final class AlertGeneratorTests: XCTestCase {
 
@@ -25,7 +25,7 @@ final class AlertGeneratorTests: XCTestCase {
             temperature_2m_max: [temp + 5],
             temperature_2m_min: [temp - 5]
         )
-        return WeatherData(current: current, daily: daily)
+        return WeatherData(current: current, daily: daily, hourly: nil)
     }
 
     func makeAQ(aqi: Int? = nil, uv: Double? = nil) -> AirQualityData {

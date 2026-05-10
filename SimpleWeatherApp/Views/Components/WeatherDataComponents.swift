@@ -36,13 +36,13 @@ struct RedesignedDetailGrid: View {
                 icon: "humidity.fill",
                 label: "湿度",
                 value: "\(weather.relative_humidity_2m)%",
-                tint: Color(hex: "3B82F6")
+                tint: DTColor.Semantic.info
             ),
             (
                 icon: "wind",
                 label: "风速",
                 value: "\(Int(weather.wind_speed_10m)) km/h",
-                tint: Color(hex: "06B6D4")
+                tint: DTColor.Brand.primaryLight
             ),
         ]
 
@@ -52,7 +52,7 @@ struct RedesignedDetailGrid: View {
                 icon: "eye.fill",
                 label: "能见度",
                 value: "\(Int(vis / 1000)) km",
-                tint: Color(hex: "8B5CF6")
+                tint: DTColor.Weather.thunder
             ))
         }
 
@@ -60,7 +60,7 @@ struct RedesignedDetailGrid: View {
             icon: "thermometer.medium",
             label: "体感温度",
             value: "\(Int(weather.apparent_temperature))\u{00B0}C",
-            tint: Color(hex: "F59E0B")
+            tint: DTColor.Semantic.warning
         ))
 
         return items
@@ -129,21 +129,13 @@ struct DetailDataCell: View {
 
                 Text(label)
                     .font(DTFont.label2.font)
-                    .foregroundStyle(
-                        colorScheme == .dark
-                            ? Color.white.opacity(0.5)
-                            : Color.black.opacity(0.4)
-                    )
+                    .foregroundStyle(DTColor.Foreground.tertiary(colorScheme))
             }
 
             // Value text
             Text(value)
                 .font(DTFont.data3.font)
-                .foregroundStyle(
-                    colorScheme == .dark
-                        ? Color.white.opacity(0.9)
-                        : Color.black.opacity(0.85)
-                )
+                .foregroundStyle(DTColor.Foreground.primary(colorScheme))
         }
         .padding(DTSpacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -200,7 +192,7 @@ struct RedesignedAQIUVCard: View {
                     PollutantBar(
                         label: "PM2.5",
                         value: pm25,
-                        max: 150,
+                        maxValue: 150,
                         unit: "\u{00B5}g/m\u{00B3}"
                     )
                 }
@@ -209,7 +201,7 @@ struct RedesignedAQIUVCard: View {
                     PollutantBar(
                         label: "PM10",
                         value: pm10Value,
-                        max: 200,
+                        maxValue: 200,
                         unit: "\u{00B5}g/m\u{00B3}"
                     )
                 }
@@ -264,19 +256,11 @@ struct RedesignedGaugeView: View {
                 VStack(spacing: 2) {
                     Text("\(value)")
                         .font(DTFont.data2.font)
-                        .foregroundStyle(
-                            colorScheme == .dark
-                                ? Color.white.opacity(0.9)
-                                : Color.black.opacity(0.85)
-                        )
+                        .foregroundStyle(DTColor.Foreground.primary(colorScheme))
 
                     Text(label)
                         .font(DTFont.caption2.font)
-                        .foregroundStyle(
-                            colorScheme == .dark
-                                ? Color.white.opacity(0.5)
-                                : Color.black.opacity(0.4)
-                        )
+                        .foregroundStyle(DTColor.Foreground.tertiary(colorScheme))
                 }
             }
 
@@ -304,14 +288,14 @@ struct RedesignedGaugeView: View {
 struct PollutantBar: View {
     let label: String
     let value: Double
-    let max: Double
+    let maxValue: Double
     let unit: String
 
     @Environment(\.colorScheme) private var colorScheme
 
     /// Progress clamped to 0...1.
     private var progress: CGFloat {
-        CGFloat(max(0, min(value / max, 1.0)))
+        CGFloat(Swift.max(0, min(value / maxValue, 1.0)))
     }
 
     /// Fill color determined by progress threshold.
@@ -331,11 +315,7 @@ struct PollutantBar: View {
             HStack {
                 Text(label)
                     .font(DTFont.body3.font)
-                    .foregroundStyle(
-                        colorScheme == .dark
-                            ? Color.white.opacity(0.6)
-                            : Color.black.opacity(0.5)
-                    )
+                    .foregroundStyle(DTColor.Foreground.secondary(colorScheme))
 
                 Spacer()
 

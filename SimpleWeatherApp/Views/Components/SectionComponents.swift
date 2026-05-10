@@ -131,19 +131,11 @@ struct RedesignedAlertBanner: View {
             VStack(alignment: .leading, spacing: DTSpacing.xxxs) {
                 Text("天气警报")
                     .font(DTFont.body1.font)
-                    .foregroundStyle(
-                        colorScheme == .dark
-                            ? .white.opacity(0.9)
-                            : .black.opacity(0.85)
-                    )
+                    .foregroundStyle(DTColor.Foreground.primary(colorScheme))
 
                 Text("\(alerts.count) 条预警")
                     .font(DTFont.body3.font)
-                    .foregroundStyle(
-                        colorScheme == .dark
-                            ? .white.opacity(0.6)
-                            : .black.opacity(0.5)
-                    )
+                    .foregroundStyle(DTColor.Foreground.secondary(colorScheme))
             }
 
             Spacer()
@@ -153,11 +145,7 @@ struct RedesignedAlertBanner: View {
 
             Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(
-                    colorScheme == .dark
-                        ? .white.opacity(0.5)
-                        : .black.opacity(0.4)
-                )
+                .foregroundStyle(DTColor.Foreground.tertiary(colorScheme))
         }
         .padding(.horizontal, DTSpacing.lg)
         .padding(.vertical, DTSpacing.md)
@@ -202,11 +190,7 @@ struct RedesignedAlertBanner: View {
                 HStack(spacing: DTSpacing.xs) {
                     Text(alert.title)
                         .font(DTFont.body1.font)
-                        .foregroundStyle(
-                            colorScheme == .dark
-                                ? .white.opacity(0.9)
-                                : .black.opacity(0.85)
-                        )
+                        .foregroundStyle(DTColor.Foreground.primary(colorScheme))
 
                     // Severity label capsule
                     Text(alert.severity.label)

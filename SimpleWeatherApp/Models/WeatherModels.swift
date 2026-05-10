@@ -160,3 +160,107 @@ struct GeocodingResult: Codable, Identifiable {
 struct GeocodingResponse: Codable {
     let results: [GeocodingResult]?
 }
+
+// MARK: - 和风天气数据模型
+struct QWeatherResponse<T: Codable>: Codable {
+    let code: String
+    let fxLink: String?
+    let refer: QWeatherRefer?
+    let now: T?
+    let daily: [T]?
+    let hourly: [T]?
+    let location: [T]?
+}
+
+struct QWeatherRefer: Codable {
+    let sources: [String]?
+    let license: [String]?
+}
+
+struct QWeatherNow: Codable {
+    let temp: String
+    let feelsLike: String
+    let rh: String
+    let text: String
+    let icon: String
+    let windSpeed: String
+    let vis: String?
+    let pressure: String?
+}
+
+struct QWeatherDaily: Codable {
+    let fxDate: String
+    let tempMax: String
+    let tempMin: String
+    let textDay: String
+    let iconDay: String
+    let windSpeedDay: String
+}
+
+struct QWeatherHourly: Codable {
+    let fxTime: String
+    let temp: String
+    let text: String
+    let icon: String
+}
+
+struct QWeatherAirQuality: Codable {
+    let aqi: String
+    let pm2p5: String?
+    let pm10: String?
+    let o3: String?
+    let uvIndex: String?
+}
+
+struct QWeatherLocation: Codable {
+    let name: String
+    let lat: String
+    let lon: String
+    let country: String?
+    let adm1: String?
+    let adm2: String?
+}
+
+// MARK: - 和风天气数据转换扩展
+extension WeatherData {
+    static func from(qWeatherNow: QWeatherNow, daily: [QWeatherDaily], hourly: [QWeatherHourly]) -> WeatherData {
+        let current = CurrentWeather(
+            temperature_2m: Double(qWeatherNow.temp) ?? 0,
+            relative_humidity_2m: Int(qWeatherNow.rh) ?? 0,
+            apparent_temperature: Double(qWeatherNow.feelsLike) ?? 0,
+            weather_code: Int(qWeatherNow.icon) ?? 0,
+            wind_speed_10m: Double(qWeatherNow.windSpeed) ?? 0,
+            visibility: Double(qWeatherNow.vis ?? "0") ?? 0
+        )
+
+        let dailyForecast = DailyForecast(
+            time: daily.map { $0.fxDate },
+            weather_code: daily.map { Int($0.iconDay) ?? 0 },
+            temperature_2m_max: daily.map { Double($0.tempMax) ?? 0 },
+            temperature_2m_min: daily.map { Double($0.tempMin) ?? 0 }
+        )
+
+        let hourlyForecast = HourlyForecast(
+            time: hourly.map { $0.fxTime },
+            temperature_2m: hourly.map { Double($0.temp) ?? 0 },
+            weather_code: hourly.map { Int($0.icon) ?? 0 }
+        )
+
+        return WeatherData(
+            current: current,
+            daily: dailyForecast,
+            hourly: hourlyForecast
+        )
+    }
+}
+
+extension AirQualityData {
+    static func from(qWeatherAir: QWeatherAirQuality) -> AirQualityData {
+        AirQualityData(
+            us_aqi: Int(qWeatherAir.aqi) ?? 0,
+            pm10: Double(qWeatherAir.pm10 ?? "0") ?? 0,
+            pm2_5: Double(qWeatherAir.pm2p5 ?? "0") ?? 0,
+            uv_index: Double(qWeatherAir.uvIndex ?? "0") ?? 0
+        )
+    }
+}

@@ -218,6 +218,101 @@ class WeatherStore {
         }
     }
 
+    // MARK: - JWT鉴权
+    private func getQWeatherAuthHeader() -> [String: String]? {
+        guard !AppConfig.qWeatherApiKey.isEmpty,
+              AppConfig.qWeatherApiKey != "YOUR_API_KEY_HERE",
+              !AppConfig.qWeatherApiSecret.isEmpty,
+              AppConfig.qWeatherApiSecret != "YOUR_API_SECRET_HERE" else {
+            return nil
+        }
+
+        guard let token = JWTGenerator.generateQWeatherToken(
+            apiKey: AppConfig.qWeatherApiKey,
+            apiSecret: AppConfig.qWeatherApiSecret,
+            expiresIn: AppConfig.jwtExpiresIn
+        ) else {
+            return nil
+        }
+
+        return ["Authorization": "Bearer \(token)"]
+    }
+
+    // MARK: - 和风天气API请求
+    private func fetchQWeatherNow(lat: Double, lon: Double) async throws -> QWeatherNow? {
+        var components = URLComponents(string: "\(AppConfig.qWeatherBaseUrl)/weather/now")!
+        components.queryItems = [
+            .init(name: "location", value: "\(lon),\(lat)"),
+            .init(name: "lang", value: "zh")
+        ]
+        guard let url = components.url else { return nil }
+
+        var request = URLRequest(url: url)
+        guard let authHeader = getQWeatherAuthHeader() else {
+            #if DEBUG
+            print("请先配置和风天气API Key和Secret")
+            #endif
+            return nil
+        }
+        authHeader.forEach { request.addValue($0.value, forHTTPHeaderField: $0.key) }
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(QWeatherResponse<QWeatherNow>.self, from: data)
+        guard response.code == "200" else {
+            print("和风天气API错误: \(response.code)")
+            return nil
+        }
+        return response.now
+    }
+
+    private func fetchQWeatherDaily(lat: Double, lon: Double) async throws -> [QWeatherDaily] {
+        var components = URLComponents(string: "\(AppConfig.qWeatherBaseUrl)/weather/7d")!
+        components.queryItems = [
+            .init(name: "location", value: "\(lon),\(lat)"),
+            .init(name: "lang", value: "zh")
+        ]
+        guard let url = components.url else { return [] }
+
+        var request = URLRequest(url: url)
+        if let authHeader = getQWeatherAuthHeader() {
+            authHeader.forEach { request.addValue($0.value, forHTTPHeaderField: $0.key) }
+        } else {
+            components.queryItems?.append(.init(name: "key", value: AppConfig.qWeatherApiKey))
+            request.url = components.url
+        }
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(QWeatherResponse<QWeatherDaily>.self, from: data)
+        guard response.code == "200", let daily = response.daily else {
+            return []
+        }
+        return daily
+    }
+
+    private func fetchQWeatherHourly(lat: Double, lon: Double) async throws -> [QWeatherHourly] {
+        var components = URLComponents(string: "\(AppConfig.qWeatherBaseUrl)/weather/24h")!
+        components.queryItems = [
+            .init(name: "location", value: "\(lon),\(lat)"),
+            .init(name: "lang", value: "zh")
+        ]
+        guard let url = components.url else { return [] }
+
+        var request = URLRequest(url: url)
+        if let authHeader = getQWeatherAuthHeader() {
+            authHeader.forEach { request.addValue($0.value, forHTTPHeaderField: $0.key) }
+        } else {
+            components.queryItems?.append(.init(name: "key", value: AppConfig.qWeatherApiKey))
+            request.url = components.url
+        }
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(QWeatherResponse<QWeatherHourly>.self, from: data)
+        guard response.code == "200", let hourly = response.hourly else {
+            return []
+        }
+        return hourly
+    }
+
     private func fetchAirQuality(lat: Double, lon: Double) async -> AirQualityData? {
         var components = URLComponents(string: "https://air-quality-api.open-meteo.com/v1/air-quality")!
         components.queryItems = [
@@ -243,4 +338,102 @@ class WeatherStore {
             return nil
         }
     }
+
+    // MARK: - 和风天气相关代码（暂时注释，需要时启用）
+    /*
+    // MARK: - JWT鉴权
+    private func getQWeatherAuthHeader() -> [String: String]? {
+        guard !AppConfig.qWeatherApiKey.isEmpty,
+              AppConfig.qWeatherApiKey != "YOUR_API_KEY_HERE",
+              !AppConfig.qWeatherApiSecret.isEmpty,
+              AppConfig.qWeatherApiSecret != "YOUR_API_SECRET_HERE" else {
+            return nil
+        }
+
+        guard let token = JWTGenerator.generateQWeatherToken(
+            apiKey: AppConfig.qWeatherApiKey,
+            apiSecret: AppConfig.qWeatherApiSecret,
+            expiresIn: AppConfig.jwtExpiresIn
+        ) else {
+            return nil
+        }
+
+        return ["Authorization": "Bearer \(token)"]
+    }
+
+    // MARK: - 和风天气API请求
+    private func fetchQWeatherNow(lat: Double, lon: Double) async throws -> QWeatherNow? {
+        var components = URLComponents(string: "\(AppConfig.qWeatherBaseUrl)/weather/now")!
+        components.queryItems = [
+            .init(name: "location", value: "\(lon),\(lat)"),
+            .init(name: "lang", value: "zh")
+        ]
+        guard let url = components.url else { return nil }
+
+        var request = URLRequest(url: url)
+        guard let authHeader = getQWeatherAuthHeader() else {
+            #if DEBUG
+            print("请先配置和风天气API Key和Secret")
+            #endif
+            return nil
+        }
+        authHeader.forEach { request.addValue($0.value, forHTTPHeaderField: $0.key) }
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(QWeatherResponse<QWeatherNow>.self, from: data)
+        guard response.code == "200" else {
+            print("和风天气API错误: \(response.code)")
+            return nil
+        }
+        return response.now
+    }
+
+    private func fetchQWeatherDaily(lat: Double, lon: Double) async throws -> [QWeatherDaily] {
+        var components = URLComponents(string: "\(AppConfig.qWeatherBaseUrl)/weather/7d")!
+        components.queryItems = [
+            .init(name: "location", value: "\(lon),\(lat)"),
+            .init(name: "lang", value: "zh")
+        ]
+        guard let url = components.url else { return [] }
+
+        var request = URLRequest(url: url)
+        if let authHeader = getQWeatherAuthHeader() {
+            authHeader.forEach { request.addValue($0.value, forHTTPHeaderField: $0.key) }
+        } else {
+            components.queryItems?.append(.init(name: "key", value: AppConfig.qWeatherApiKey))
+            request.url = components.url
+        }
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(QWeatherResponse<QWeatherDaily>.self, from: data)
+        guard response.code == "200", let daily = response.daily else {
+            return []
+        }
+        return daily
+    }
+
+    private func fetchQWeatherHourly(lat: Double, lon: Double) async throws -> [QWeatherHourly] {
+        var components = URLComponents(string: "\(AppConfig.qWeatherBaseUrl)/weather/24h")!
+        components.queryItems = [
+            .init(name: "location", value: "\(lon),\(lat)"),
+            .init(name: "lang", value: "zh")
+        ]
+        guard let url = components.url else { return [] }
+
+        var request = URLRequest(url: url)
+        if let authHeader = getQWeatherAuthHeader() {
+            authHeader.forEach { request.addValue($0.value, forHTTPHeaderField: $0.key) }
+        } else {
+            components.queryItems?.append(.init(name: "key", value: AppConfig.qWeatherApiKey))
+            request.url = components.url
+        }
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(QWeatherResponse<QWeatherHourly>.self, from: data)
+        guard response.code == "200", let hourly = response.hourly else {
+            return []
+        }
+        return hourly
+    }
+    */
 }

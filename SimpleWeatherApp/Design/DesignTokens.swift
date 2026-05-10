@@ -107,6 +107,28 @@ enum DTColor {
         static let thunder      = Color(hex: "#A78BFA")
         static let fog          = Color(hex: "#CBD5E1")
     }
+
+    // MARK: Background
+    /// Solid background colours for the main app surface.
+    enum Background {
+        static let light = Color(hex: "#F8FAFC")
+        static let dark  = Color(hex: "#0A0A0A")
+    }
+
+    // MARK: Foreground (theme-aware)
+    /// Semantic foreground colours that adapt to light / dark mode.
+    /// Pass the current `colorScheme` environment value.
+    enum Foreground {
+        static func primary(_ scheme: ColorScheme) -> Color {
+            scheme == .dark ? .white.opacity(0.9) : .black.opacity(0.85)
+        }
+        static func secondary(_ scheme: ColorScheme) -> Color {
+            scheme == .dark ? .white.opacity(0.6) : .black.opacity(0.5)
+        }
+        static func tertiary(_ scheme: ColorScheme) -> Color {
+            scheme == .dark ? .white.opacity(0.5) : .black.opacity(0.4)
+        }
+    }
 }
 
 // MARK: - DTFont

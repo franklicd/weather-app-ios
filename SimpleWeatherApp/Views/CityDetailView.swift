@@ -1,14 +1,15 @@
 import SwiftUI
 
+// MARK: - City Detail View (outer shell)
+
 struct CityDetailView: View {
     @Environment(WeatherStore.self) private var store
-    @State private var lastSelectedCityId: UUID?
 
     var body: some View {
         NavigationStack {
             Group {
                 if let city = store.selectedCity {
-                    CityWeatherDetailView(city: city) {
+                    RedesignedCityDetailView(city: city) {
                         if let i = store.cities.firstIndex(where: { $0.id == city.id }) {
                             await store.fetchWeather(at: i, sendNotification: true)
                         }
@@ -35,114 +36,36 @@ struct CityDetailView: View {
                     }
                 }
             }
-
-        .background {
+            .background {
                 WeatherBackgroundView(weatherCode: store.selectedCity?.weather?.current.weather_code)
                     .ignoresSafeArea()
             }
-        } // NavigationStack
+        }
     }
 }
 
-// MARK: - Detail Content
+// MARK: - Redesigned City Detail View
 
-struct CityWeatherDetailView: View {
+struct RedesignedCityDetailView: View {
     let city: CityWeather
     let onRefresh: () async -> Void
+
     @State private var contentAppear = false
-    @State private var loadingAppear = false
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
+            VStack(spacing: DTSpacing.lg) {
                 if city.isLoading {
-                    // 品牌化加载动画
                     WeatherLoadingView()
                         .padding(.top, 60)
-                        .opacity(loadingAppear ? 1 : 0)
-                        .scaleEffect(loadingAppear ? 1 : 0.8)
-                        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: loadingAppear)
+                        .opacity(contentAppear ? 1 : 0)
+                        .scaleEffect(contentAppear ? 1 : 0.8)
+                        .animation(DTAnimation.standardSpring.delay(0.1), value: contentAppear)
                 } else if let weather = city.weather {
-                    // 网络更新失败横幅（保留旧数据时显示）
-                    if let err = city.fetchError {
-                        Label(err, systemImage: "wifi.exclamationmark")
-                            .font(.caption)
-                            .foregroundStyle(.orange)
-                            .padding(10)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
-                            .opacity(contentAppear ? 1 : 0)
-                            .offset(y: contentAppear ? 0 : 20)
-                            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.05), value: contentAppear)
-                    }
-
-                    // 主温度卡片
-                    MainWeatherCard(weather: weather.current, alertCount: city.alerts.count)
-                        .opacity(contentAppear ? 1 : 0)
-                        .offset(y: contentAppear ? 0 : 30)
-                        .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.15), value: contentAppear)
-
-                    // 预警横幅（保留在详情区域）
-                    if !city.alerts.isEmpty {
-                        AlertBannerSection(alerts: city.alerts)
-                            .opacity(contentAppear ? 1 : 0)
-                            .offset(y: contentAppear ? 0 : 25)
-                            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3), value: contentAppear)
-                    }
-
-                    // 小时预报
-                    HourlyForecastSection(hourly: weather.hourly)
-                        .opacity(contentAppear ? 1 : 0)
-                        .offset(y: contentAppear ? 0 : 30)
-                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.4), value: contentAppear)
-
-                    // 详细数据
-                    WeatherDetailGrid(weather: weather.current)
-                        .opacity(contentAppear ? 1 : 0)
-                        .offset(y: contentAppear ? 0 : 25)
-                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.5), value: contentAppear)
-
-                    // AQI & UV 卡片
-                    if let aq = city.airQuality {
-                        AirQualityCard(aq: aq)
-                            .opacity(contentAppear ? 1 : 0)
-                            .offset(y: contentAppear ? 0 : 25)
-                            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.6), value: contentAppear)
-                    }
-
-                    // 7天预报
-                    ForecastSection(daily: weather.daily)
-                        .opacity(contentAppear ? 1 : 0)
-                        .offset(y: contentAppear ? 0 : 30)
-                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.7), value: contentAppear)
-
-                    if let updated = city.lastUpdated {
-                        Text("更新于 \(updated.formatted(.dateTime.hour().minute()))")
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                            .padding(.bottom, 8)
-                            .opacity(contentAppear ? 1 : 0)
-                            .animation(.easeInOut.delay(0.8), value: contentAppear)
-                    }
+                    weatherContent(weather: weather)
                 } else if let err = city.fetchError {
-                    // 无数据且有错误时显示重试界面
-                    VStack(spacing: 20) {
-                        Image(systemName: "wifi.exclamationmark")
-                            .font(.system(size: 52))
-                            .foregroundStyle(.orange)
-                        Text("加载失败")
-                            .font(.title3)
-                            .fontWeight(.medium)
-                        Text(err)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .padding(.horizontal, 32)
-                    .padding(.top, 60)
-                    .opacity(contentAppear ? 1 : 0)
-                    .scaleEffect(contentAppear ? 1 : 0.8)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: contentAppear)
+                    errorView(err)
                 } else {
                     ContentUnavailableView(
                         "暂无数据",
@@ -150,876 +73,168 @@ struct CityWeatherDetailView: View {
                         description: Text("无法获取天气数据，请下拉刷新")
                     )
                     .padding(.top, 60)
-                    .opacity(contentAppear ? 1 : 0)
-                    .scaleEffect(contentAppear ? 1 : 0.8)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: contentAppear)
                 }
             }
-            .padding()
+            .padding(.horizontal, DTSpacing.lg)
+            .padding(.top, 8)
+            .padding(.bottom, 100)
         }
-        .refreshable {
-            await onRefresh()
-        }
+        .refreshable { await onRefresh() }
         .background(.clear)
         .onAppear {
-            loadingAppear = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 contentAppear = true
             }
         }
     }
-}
 
-// MARK: - Main Weather Card
+    // MARK: - Weather Content
 
-struct MainWeatherCard: View {
-    let weather: CurrentWeather
-    let alertCount: Int
-    @State private var breathe = false
-    @Environment(\.colorScheme) private var colorScheme
+    @ViewBuilder
+    private func weatherContent(weather: WeatherData) -> some View {
+        // 1. Hero Card
+        RedesignedHeroCard(weather: weather.current, alertCount: city.alerts.count)
+            .opacity(contentAppear ? 1 : 0)
+            .offset(y: contentAppear ? 0 : 30)
+            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: contentAppear)
 
-    var body: some View {
-        VStack(spacing: 12) {
-            ZStack(alignment: .topTrailing) {
-                DynamicWeatherIcon(weatherCode: weather.weather_code)
-                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
-                    .scaleEffect(breathe ? 1.08 : 1.0)
-                    .animation(
-                        .easeInOut(duration: 2.5)
-                        .repeatForever(autoreverses: true),
-                        value: breathe
-                    )
-
-                if alertCount > 0 {
-                    ZStack {
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.red.opacity(0.9), Color.orange.opacity(0.7)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .symbolEffect(.pulse, options: .repeating, isActive: alertCount > 0)
-
-                        Text("\(alertCount)")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                    }
-                    .fixedSize()
-                    .offset(x: 10, y: -10)
-                }
+        // 2. Error banner (stale data warning)
+        if let err = city.fetchError {
+            HStack(spacing: DTSpacing.xs) {
+                Image(systemName: "wifi.exclamationmark")
+                    .font(.system(size: 14))
+                Text(err)
+                    .font(DTFont.body3.font)
             }
-
-            TemperatureView(temperature: weather.temperature_2m)
-                .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 3)
-
-            Text(WeatherCode.description(for: weather.weather_code))
-                .font(.title3)
-                .fontWeight(.semibold)
-                .foregroundStyle(Theme.textPrimary(for: colorScheme))
-
-            Text("体感温度 \(Int(weather.apparent_temperature))°C")
-                .font(.subheadline)
-                .foregroundStyle(Theme.textSecondary(for: colorScheme))
-                .padding(.top, 4)
+            .foregroundStyle(DTColor.Semantic.warning)
+            .padding(.horizontal, DTSpacing.md)
+            .padding(.vertical, DTSpacing.sm)
+            .background(
+                RoundedRectangle(cornerRadius: DTRadius.md)
+                    .fill(DTColor.Semantic.warning.opacity(0.1))
+            )
+            .opacity(contentAppear ? 1 : 0)
+            .offset(y: contentAppear ? 0 : 15)
+            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.15), value: contentAppear)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 32)
-        .padding(.horizontal, 20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.25), radius: 20, x: 0, y: 10)
-                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                )
-        )
-        .onAppear {
-            breathe = true
+
+        // 3. Alert Banner
+        if !city.alerts.isEmpty {
+            RedesignedAlertBanner(alerts: city.alerts)
+                .opacity(contentAppear ? 1 : 0)
+                .offset(y: contentAppear ? 0 : 20)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: contentAppear)
         }
-    }
-}
 
-// MARK: - Alert Banner
-
-struct AlertBannerSection: View {
-    let alerts: [WeatherAlert]
-    @State private var appear = false
-
-    var body: some View {
-        VStack(spacing: 12) {
-            ForEach(Array(alerts.enumerated()), id: \.element.id) { index, alert in
-                HStack(spacing: 16) {
-                    // 左侧图标和渐变背景
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [alert.severity.color.opacity(0.8), alert.severity.color.opacity(0.4)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 50, height: 50)
-                        
-                        Image(systemName: alert.icon)
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundStyle(.white)
-                            .symbolEffect(.bounce.up, options: .speed(0.6), value: appear)
-                    }
-                    .shadow(color: alert.severity.color.opacity(0.4), radius: 8, x: 0, y: 4)
-
-                    // 右侧文字内容
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            Text(alert.title)
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                            Spacer()
-                            Text(alert.severity.label)
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 4)
-                                .background(
-                                    Capsule()
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [alert.severity.color, alert.severity.color.opacity(0.7)],
-                                                startPoint: .top,
-                                                endPoint: .bottom
-                                            )
-                                        )
-                                )
-                                .foregroundStyle(.white)
-                                .symbolEffect(.pulse, options: .repeating, isActive: true)
-                        }
-                        Text(alert.description)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                    }
-                }
-                .padding(16)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    alert.severity.color.opacity(0.15),
-                                    alert.severity.color.opacity(0.05)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .shadow(color: alert.severity.color.opacity(0.2), radius: 12, x: 0, y: 6)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(
-                                    LinearGradient(
-                                        colors: [
-                                            alert.severity.color.opacity(0.4),
-                                            alert.severity.color.opacity(0.1)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    ),
-                                    lineWidth: 1.5
-                                )
-                        )
-                )
-                .opacity(appear ? 1 : 0)
-                .offset(y: appear ? 0 : -20)
-                .animation(
-                    .spring(response: 0.5, dampingFraction: 0.8)
-                    .delay(Double(index) * 0.12),
-                    value: appear
-                )
-            }
+        // 4. Hourly Forecast
+        let hourlyItems = buildHourlyItems(current: weather.current, hourly: weather.hourly)
+        if !hourlyItems.isEmpty {
+            RedesignedHourlyForecast(items: hourlyItems)
+                .opacity(contentAppear ? 1 : 0)
+                .offset(y: contentAppear ? 0 : 25)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3), value: contentAppear)
         }
-        .onAppear {
-            appear = true
+
+        // 5. Detail Grid
+        RedesignedDetailGrid(weather: weather.current)
+            .opacity(contentAppear ? 1 : 0)
+            .offset(y: contentAppear ? 0 : 20)
+            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.4), value: contentAppear)
+
+        // 6. AQI & UV Card
+        if let aq = city.airQuality {
+            RedesignedAQIUVCard(aq: aq)
+                .opacity(contentAppear ? 1 : 0)
+                .offset(y: contentAppear ? 0 : 20)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.5), value: contentAppear)
         }
-    }
-}
 
-// MARK: - Detail Grid
+        // 7. 7-Day Forecast
+        RedesignedForecastSection(daily: weather.daily)
+            .opacity(contentAppear ? 1 : 0)
+            .offset(y: contentAppear ? 0 : 25)
+            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.6), value: contentAppear)
 
-struct WeatherDetailGrid: View {
-    let weather: CurrentWeather
-    @State private var appear = false
-    @Environment(\.colorScheme) private var colorScheme
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("详细信息")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundStyle(Theme.textPrimary(for: colorScheme))
-                .opacity(appear ? 1 : 0)
-                .offset(x: appear ? 0 : -20)
-                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: appear)
-            
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                ForEach(Array(detailCells.enumerated()), id: \.offset) { index, cell in
-                    DetailCell(icon: cell.icon, label: cell.label, value: cell.value, color: cell.color)
-                        .opacity(appear ? 1 : 0)
-                        .scaleEffect(appear ? 1 : 0.8)
-                        .offset(y: appear ? 0 : 20)
-                        .animation(
-                            .spring(response: 0.5, dampingFraction: 0.8)
-                            .delay(Double(index) * 0.12),
-                            value: appear
-                        )
-                }
-            }
-        }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.2), radius: 16, x: 0, y: 8)
-                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                )
-        )
-        .onAppear {
-            appear = true
-        }
-    }
-    
-    private var detailCells: [(icon: String, label: String, value: String, color: Color)] {
-        var cells: [(icon: String, label: String, value: String, color: Color)] = [
-            ("humidity.fill", "湿度", "\(weather.relative_humidity_2m)%", .blue),
-            ("wind", "风速", "\(Int(weather.wind_speed_10m)) km/h", .teal)
-        ]
-        if let vis = weather.visibility {
-            cells.append(("eye.fill", "能见度", "\(Int(vis / 1000)) km", .purple))
-        }
-        cells.append(("thermometer.medium", "体感温度", "\(Int(weather.apparent_temperature))°C", .orange))
-        return cells
-    }
-}
-
-struct DetailCell: View {
-    let icon: String
-    let label: String
-    let value: String
-    let color: Color
-    @Environment(\.colorScheme) private var colorScheme
-
-    var body: some View {
-        VStack(spacing: 12) {
-            // 图标
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [color.opacity(0.3), color.opacity(0.1)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 50, height: 50)
-
-                Image(systemName: icon)
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(color)
-            }
-            .shadow(color: color.opacity(0.3), radius: 6, x: 0, y: 3)
-
-            // 数值和标签
-            VStack(spacing: 4) {
-                Text(value)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Theme.textPrimary(for: colorScheme))
-
-                Text(label)
-                    .font(.caption)
-                    .foregroundStyle(Theme.textSecondary(for: colorScheme))
-            }
-        }
-        .padding(.vertical, 16)
-        .padding(.horizontal, 12)
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.08))
-        )
-    }
-}
-
-// MARK: - Air Quality Card
-
-struct AirQualityCard: View {
-    let aq: AirQualityData
-    @Environment(\.colorScheme) private var colorScheme
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("空气质量 & 紫外线")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundStyle(Theme.textPrimary(for: colorScheme))
-
-            HStack(spacing: 16) {
-                if let aqi = aq.us_aqi {
-                    AQIGaugeView(aqi: aqi)
-                }
-                if let uv = aq.uv_index {
-                    UVGaugeView(uv: uv)
-                }
-            }
-
-            VStack(spacing: 8) {
-                if let pm25 = aq.pm2_5 {
-                    PollutantRow(label: "PM2.5", value: "\(Int(pm25)) μg/m³")
-                }
-                if let pm10 = aq.pm10 {
-                    PollutantRow(label: "PM10", value: "\(Int(pm10)) μg/m³")
-                }
-            }
-        }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.2), radius: 16, x: 0, y: 8)
-                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                )
-        )
-    }
-}
-
-struct PollutantRow: View {
-    let label: String
-    let value: String
-    @Environment(\.colorScheme) private var colorScheme
-
-    var body: some View {
-        HStack {
-            Text(label)
-                .font(.subheadline)
-                .foregroundStyle(Theme.textSecondary(for: colorScheme))
-
-            Spacer()
-
-            Text(value)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundStyle(Theme.textPrimary(for: colorScheme))
-        }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.06))
-        )
-    }
-}
-
-struct AQIGaugeView: View {
-    let aqi: Int
-    @Environment(\.colorScheme) private var colorScheme
-
-    private let aqiColor: Color
-    private let aqiLevel: String
-
-    init(aqi: Int) {
-        self.aqi = aqi
-        self.aqiColor = AirQualityHelper.aqiColor(for: aqi)
-        self.aqiLevel = AirQualityHelper.aqiLevel(for: aqi)
-    }
-
-    var body: some View {
-        VStack(spacing: 8) {
-            // 圆形仪表盘
-            ZStack {
-                // 背景圆环
-                Circle()
-                    .stroke(Color.white.opacity(0.15), lineWidth: 8)
-                    .frame(width: 80, height: 80)
-
-                // 进度圆环
-                Circle()
-                    .trim(from: 0, to: min(Double(aqi) / 300.0, 1.0))
-                    .stroke(
-                        LinearGradient(
-                            colors: [aqiColor, aqiColor.opacity(0.5)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        style: StrokeStyle(lineWidth: 8, lineCap: .round)
-                    )
-                    .frame(width: 80, height: 80)
-                    .rotationEffect(.degrees(-90))
-
-                // AQI数值
-                VStack(spacing: 2) {
-                    Text("\(aqi)")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundStyle(aqiColor)
-                    Text("AQI")
-                        .font(.caption2)
-                        .foregroundStyle(Theme.textSecondary(for: colorScheme))
-                }
-            }
-
-            // 等级标签
-            Text(aqiLevel)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundStyle(aqiColor)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(
-                    Capsule()
-                        .fill(aqiColor.opacity(0.2))
-                )
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.06))
-        )
-    }
-}
-
-struct UVGaugeView: View {
-    let uv: Double
-    @Environment(\.colorScheme) private var colorScheme
-
-    private let uvColor: Color
-    private let uvLevel: String
-
-    init(uv: Double) {
-        self.uv = uv
-        self.uvColor = AirQualityHelper.uvColor(for: uv)
-        self.uvLevel = AirQualityHelper.uvLevel(for: uv)
-    }
-
-    var body: some View {
-        VStack(spacing: 8) {
-            // 圆形仪表盘
-            ZStack {
-                // 背景圆环
-                Circle()
-                    .stroke(Color.white.opacity(0.15), lineWidth: 8)
-                    .frame(width: 80, height: 80)
-
-                // 进度圆环
-                Circle()
-                    .trim(from: 0, to: min(Double(uv) / 11.0, 1.0))
-                    .stroke(
-                        LinearGradient(
-                            colors: [uvColor, uvColor.opacity(0.5)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        style: StrokeStyle(lineWidth: 8, lineCap: .round)
-                    )
-                    .frame(width: 80, height: 80)
-                    .rotationEffect(.degrees(-90))
-
-                // UV数值
-                VStack(spacing: 2) {
-                    Text("\(Int(uv))")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundStyle(uvColor)
-                    Text("紫外线")
-                        .font(.caption2)
-                        .foregroundStyle(Theme.textSecondary(for: colorScheme))
-                }
-            }
-
-            // 等级标签
-            Text(uvLevel)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundStyle(uvColor)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(
-                    Capsule()
-                        .fill(uvColor.opacity(0.2))
-                )
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.06))
-        )
-    }
-}
-
-// MARK: - Hourly Forecast Section
-
-struct HourlyForecastSection: View {
-    let hourly: HourlyForecast?
-    @State private var appear = false
-    @Environment(\.colorScheme) private var colorScheme
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("24小时预报")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundStyle(Theme.textPrimary(for: colorScheme))
-                .opacity(appear ? 1 : 0)
-                .offset(x: appear ? 0 : -20)
-                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: appear)
-            
-            if hourly != nil {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 16) {
-                        ForEach(Array(hourlyItems.prefix(24).enumerated()), id: \.element.time) { index, item in
-                            HourlyForecastItem(
-                                time: item.time,
-                                temperature: item.temperature,
-                                weatherCode: item.weatherCode,
-                                isNow: index == 0
-                            )
-                            .opacity(appear ? 1 : 0)
-                            .scaleEffect(appear ? 1 : 0.6)
-                            .offset(y: appear ? 0 : 15)
-                            .animation(
-                                .spring(response: 0.4, dampingFraction: 0.8)
-                                .delay(Double(index) * 0.03),
-                                value: appear
-                            )
-                        }
-                    }
-                    .padding(.horizontal, 4)
-                }
-                .opacity(appear ? 1 : 0)
-                .scaleEffect(appear ? 1 : 0.95)
-                .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appear)
-            } else {
-                // 占位视图，当没有小时预报数据时显示
-                HStack(spacing: 16) {
-                    ForEach(0..<6, id: \.self) { _ in
-                        HourlyForecastPlaceholder()
-                    }
-                }
-            }
-        }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.2), radius: 16, x: 0, y: 8)
-                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                )
-        )
-        .onAppear {
-            appear = true
-        }
-    }
-    
-    struct HourlyItem {
-        let time: String
-        let temperature: Double
-        let weatherCode: Int
-    }
-    
-    var hourlyItems: [HourlyItem] {
-        guard let hourly = hourly else { return [] }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
-        let displayFormatter = DateFormatter()
-        displayFormatter.dateFormat = "HH:mm"
-        displayFormatter.locale = Locale(identifier: "zh_CN")
-        
-        return zip(hourly.time, zip(hourly.temperature_2m, hourly.weather_code)).compactMap { time, tempAndCode in
-            let (temp, code) = tempAndCode
-            let displayTime: String
-            if let date = formatter.date(from: time) {
-                displayTime = displayFormatter.string(from: date)
-            } else {
-                displayTime = String(time.suffix(5))
-            }
-            return HourlyItem(time: displayTime, temperature: temp, weatherCode: code)
-        }
-    }
-}
-
-struct HourlyForecastItem: View {
-    let time: String
-    let temperature: Double
-    let weatherCode: Int
-    let isNow: Bool
-    @Environment(\.colorScheme) private var colorScheme
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Text(isNow ? "现在" : time)
-                .font(.caption)
-                .fontWeight(isNow ? .semibold : .medium)
-                .foregroundStyle(isNow ? .white : Theme.textPrimary(for: colorScheme))
-
-            Image(systemName: WeatherCode.icon(for: weatherCode))
-                .font(.system(size: 24, weight: .medium))
-                .foregroundStyle(isNow ? .white : WeatherCode.color(for: weatherCode))
-                .shadow(color: isNow ? .white.opacity(0.5) : WeatherCode.color(for: weatherCode).opacity(0.3), radius: 4, x: 0, y: 2)
-
-            Text("\(Int(temperature))°")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundStyle(isNow ? .white : Theme.textPrimary(for: colorScheme))
-        }
-        .padding(.vertical, 16)
-        .padding(.horizontal, 12)
-        .frame(minWidth: 70)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(
-                    isNow ?
-                    LinearGradient(
-                        colors: [Color(hex: "#FF6B6B"), Color(hex: "#FF8E53")],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ) :
-                    LinearGradient(
-                        colors: [Color.white.opacity(0.15), Color.white.opacity(0.05)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .shadow(color: isNow ? Color(hex: "#FF6B6B").opacity(0.4) : .black.opacity(0.15), radius: isNow ? 10 : 6, x: 0, y: isNow ? 6 : 3)
-        )
-    }
-}
-
-struct HourlyForecastPlaceholder: View {
-    var body: some View {
-        VStack(spacing: 12) {
-            Rectangle()
-                .fill(Color.white.opacity(0.2))
-                .frame(width: 30, height: 12)
-                .cornerRadius(6)
-            
-            Rectangle()
-                .fill(Color.white.opacity(0.2))
-                .frame(width: 24, height: 24)
-                .cornerRadius(12)
-            
-            Rectangle()
-                .fill(Color.white.opacity(0.2))
-                .frame(width: 28, height: 16)
-                .cornerRadius(8)
-        }
-        .padding(.vertical, 16)
-        .padding(.horizontal, 12)
-        .frame(minWidth: 70)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.1))
-        )
-    }
-}
-
-// MARK: - Forecast Section
-
-struct ForecastSection: View {
-    let daily: DailyForecast
-    @State private var appear = false
-    @State private var progressAppear = false
-    @Environment(\.colorScheme) private var colorScheme
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("7天预报")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundStyle(Theme.textPrimary(for: colorScheme))
-                .opacity(appear ? 1 : 0)
-                .offset(x: appear ? 0 : -20)
-                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: appear)
-
-            VStack(spacing: 0) {
-                ForEach(Array(forecastItems.enumerated()), id: \.element.date) { index, item in
-                    HStack(spacing: 12) {
-                        // 日期
-                        Text(item.date)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundStyle(Theme.textPrimary(for: colorScheme))
-                            .frame(width: 60, alignment: .leading)
-
-                        // 天气图标
-                        ZStack {
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [WeatherCode.color(for: item.code).opacity(0.2), WeatherCode.color(for: item.code).opacity(0.05)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .frame(width: 40, height: 40)
-
-                            Image(systemName: WeatherCode.icon(for: item.code))
-                                .font(.system(size: 20, weight: .medium))
-                                .foregroundStyle(WeatherCode.color(for: item.code))
-                                .symbolEffect(.bounce.up, options: .speed(0.5), value: appear)
-                        }
-
-                        // 天气描述
-                        Text(WeatherCode.description(for: item.code))
-                            .font(.subheadline)
-                            .foregroundStyle(Theme.textSecondary(for: colorScheme))
-                            .lineLimit(1)
-                            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-
-                        // 温度范围 - 固定宽度确保不被挤掉
-                        HStack(spacing: 8) {
-                            Text("\(Int(item.min))°")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.blue)
-                                .frame(minWidth: 30, alignment: .trailing)
-
-                            // 温度进度条
-                            GeometryReader { geometry in
-                                let range = (item.max - item.min)
-                                let normalizedMax = range > 0 ? CGFloat((item.max - item.min) / range) : 0.5
-                                let normalizedMin = range > 0 ? CGFloat(0) : 0.5
-
-                                ZStack(alignment: .leading) {
-                                    // 背景条
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(Color.white.opacity(0.1))
-                                        .frame(height: 6)
-
-                                    // 温度范围条
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [Color.blue, Color.orange],
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
-                                        .frame(width: progressAppear ? max(geometry.size.width * (normalizedMax - normalizedMin), 8) : 0, height: 6)
-                                        .offset(x: progressAppear ? geometry.size.width * normalizedMin : 0)
-                                        .animation(
-                                            .spring(response: 0.8, dampingFraction: 0.7)
-                                            .delay(0.1 + Double(index) * 0.05),
-                                            value: progressAppear
-                                        )
-                                }
-                            }
-                            .frame(width: 60, height: 6)
-
-                            Text("\(Int(item.max))°")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.orange)
-                                .frame(minWidth: 30, alignment: .leading)
-                        }
-                        .layoutPriority(1)
-                    }
-                    .padding(.vertical, 12)
-                    .opacity(appear ? 1 : 0)
-                    .offset(x: appear ? 0 : -30)
-                    .animation(
-                        .spring(response: 0.5, dampingFraction: 0.8)
-                        .delay(Double(index) * 0.08),
-                        value: appear
-                    )
-                    
-                    if item.date != forecastItems.last?.date {
-                        Divider()
-                            .background(Color.white.opacity(0.15))
-                            .opacity(appear ? 1 : 0)
-                            .animation(.easeInOut.delay(Double(index) * 0.08 + 0.2), value: appear)
-                    }
-                }
-            }
-        }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.2), radius: 16, x: 0, y: 8)
-                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                )
-        )
-        .opacity(appear ? 1 : 0)
-        .scaleEffect(appear ? 1 : 0.95)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appear)
-        .onAppear {
-            appear = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                progressAppear = true
-            }
+        // 8. Last updated timestamp
+        if let updated = city.lastUpdated {
+            Text("更新于 \(updated.formatted(.dateTime.hour().minute()))")
+                .font(DTFont.caption2.font)
+                .foregroundStyle(.tertiary)
+                .padding(.bottom, DTSpacing.sm)
+                .opacity(contentAppear ? 1 : 0)
+                .animation(.easeInOut.delay(0.7), value: contentAppear)
         }
     }
 
-    struct ForecastItem {
-        let date: String
-        let code: Int
-        let max: Double
-        let min: Double
+    // MARK: - Error View
+
+    @ViewBuilder
+    private func errorView(_ err: String) -> some View {
+        VStack(spacing: DTSpacing.xl) {
+            Image(systemName: "wifi.exclamationmark")
+                .font(.system(size: 52))
+                .foregroundStyle(DTColor.Semantic.warning)
+            Text("加载失败")
+                .font(DTFont.title2.font)
+            Text(err)
+                .font(DTFont.body2.font)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.horizontal, DTSpacing.xxxl)
+        .padding(.top, 60)
+        .opacity(contentAppear ? 1 : 0)
+        .scaleEffect(contentAppear ? 1 : 0.8)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: contentAppear)
     }
 
-    var forecastItems: [ForecastItem] {
-        // 安全地获取所有数组的最小长度，确保数据一致性
-        let maxCount = min(
-            daily.time.count,
-            daily.weather_code.count,
-            daily.temperature_2m_max.count,
-            daily.temperature_2m_min.count
-        )
+    // MARK: - Hourly Items Builder
 
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        let display = DateFormatter()
-        display.dateFormat = "M/d E"
-        display.locale = Locale(identifier: "zh_CN")
+    private func buildHourlyItems(current: CurrentWeather?, hourly: HourlyForecast?) -> [RedesignedHourlyForecast.HourlyItem] {
+        var items: [RedesignedHourlyForecast.HourlyItem] = []
 
-        var items: [ForecastItem] = []
-        for i in 0..<maxCount {
-            let label: String
-            if let date = formatter.date(from: daily.time[i]) {
-                label = i == 0 ? "今天" : display.string(from: date)
-            } else {
-                label = daily.time[i]
-            }
-
-            // 安全获取温度值，如果为 nil 则跳过该日期
-            guard let maxTemp = daily.temperature_2m_max[safe: i],
-                  let minTemp = daily.temperature_2m_min[safe: i] else {
-                continue
-            }
-
-            items.append(ForecastItem(
-                date: label,
-                code: daily.weather_code[i],
-                max: maxTemp,
-                min: minTemp
+        if let current = current {
+            items.append(RedesignedHourlyForecast.HourlyItem(
+                time: "现在",
+                temperature: current.temperature_2m,
+                weatherCode: current.weather_code,
+                isNow: true
             ))
         }
+
+        guard let hourly = hourly else { return items }
+
+        let parser = DateFormatter()
+        parser.dateFormat = "yyyy-MM-dd'T'HH:mm"
+        parser.locale = Locale(identifier: "en_US_POSIX")
+        parser.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
+
+        let display = DateFormatter()
+        display.dateFormat = "HH:mm"
+        display.locale = Locale(identifier: "zh_CN")
+        display.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
+
+        let now = Date()
+
+        var parsed: [(date: Date, time: String, temp: Double, code: Int)] = []
+        for i in 0..<min(hourly.time.count, hourly.temperature_2m.count, hourly.weather_code.count) {
+            if let date = parser.date(from: hourly.time[i]) {
+                parsed.append((date: date, time: display.string(from: date), temp: hourly.temperature_2m[i], code: hourly.weather_code[i]))
+            }
+        }
+
+        let future = parsed.filter { $0.date > now }
+        let maxItems = current != nil ? 23 : 24
+
+        for item in future.prefix(maxItems) {
+            items.append(RedesignedHourlyForecast.HourlyItem(
+                time: item.time,
+                temperature: item.temp,
+                weatherCode: item.code,
+                isNow: false
+            ))
+        }
+
         return items
     }
 }

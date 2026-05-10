@@ -28,7 +28,6 @@
 		A012 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F013 /* PrivacyInfo.xcprivacy */; };
 		A013 /* WeatherBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F014 /* WeatherBackgroundView.swift */; };
 		A014 /* ImprovedWeatherAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = F015 /* ImprovedWeatherAnimations.swift */; };
-		A015 /* AlertBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F016 /* AlertBannerView.swift */; };
 		A016 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F017 /* NotificationManager.swift */; };
 		A017 /* BackgroundTaskManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F018 /* BackgroundTaskManager.swift */; };
 		FF26B8BDE7E5855B5848C5A0 /* APITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FFD0A5F4F5075B8502B5E8 /* APITests.swift */; };
@@ -39,6 +38,7 @@
 		A021 /* HourlyForecast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F022 /* HourlyForecast.swift */; };
 		A022 /* HeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F023 /* HeroCard.swift */; };
 			A023 /* WeatherDataComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F024 /* WeatherDataComponents.swift */; };
+		A025 /* DailyForecast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F025 /* DailyForecast.swift */; };
 
 /* Begin PBXContainerItemProxy section */
 		TESTPROXY /* PBXContainerItemProxy */ = {
@@ -74,7 +74,6 @@
 		F013 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F014 /* WeatherBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherBackgroundView.swift; sourceTree = "<group>"; };
 		F015 /* ImprovedWeatherAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImprovedWeatherAnimations.swift; sourceTree = "<group>"; };
-		F016 /* AlertBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertBannerView.swift; sourceTree = "<group>"; };
 		F017 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		F018 /* BackgroundTaskManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTaskManager.swift; sourceTree = "<group>"; };
 		PROD /* WeatherApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeatherApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -189,6 +188,7 @@
 			children = (
 				F021 /* SectionComponents.swift */,
 				F022 /* HourlyForecast.swift */,
+				F025 /* DailyForecast.swift */,
 				F024 /* WeatherDataComponents.swift */,
 				F023 /* HeroCard.swift */,
 			);
@@ -202,7 +202,7 @@
 				TF002 /* WeatherModelsTests.swift */,
 				TF003 /* AlertGeneratorTests.swift */,
 			);
-			path = WeatherAppTests;
+			path = SimpleWeatherAppTests;
 			sourceTree = "<group>";
 		};
 		VIEWGRP /* Views */ = {
@@ -215,7 +215,6 @@
 				F012 /* SplashScreenView.swift */,
 				F014 /* WeatherBackgroundView.swift */,
 				F015 /* ImprovedWeatherAnimations.swift */,
-				F016 /* AlertBannerView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -330,11 +329,11 @@
 				A011 /* SplashScreenView.swift in Sources */,
 				A013 /* WeatherBackgroundView.swift in Sources */,
 				A014 /* ImprovedWeatherAnimations.swift in Sources */,
-				A015 /* AlertBannerView.swift in Sources */,
 				5425EE46FA01DAEFBBDEF611 /* Config.swift in Sources */,
 				A020 /* SectionComponents.swift in Sources */,
 				A021 /* HourlyForecast.swift in Sources */,
 				A023 /* WeatherDataComponents.swift in Sources */,
+				A025 /* DailyForecast.swift in Sources */,
 				A022 /* HeroCard.swift in Sources */,
 				46DE3C5CB13766B4D93E885F /* JWTGenerator.swift in Sources */,
 			);

@@ -1,5 +1,7 @@
 import SwiftUI
 
+// MARK: - City List View
+
 struct CityListView: View {
     @Environment(WeatherStore.self) private var store
     @Environment(\.colorScheme) private var colorScheme
@@ -8,8 +10,8 @@ struct CityListView: View {
     @State private var showingLocationError = false
     @State private var listAppear = false
 
-    private var rowBackground: Color {
-        colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.05)
+    private var backgroundColor: Color {
+        colorScheme == .dark ? DTColor.Background.dark : DTColor.Background.light
     }
 
     var searchResults: [PresetCity] {
@@ -19,242 +21,319 @@ struct CityListView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                    // 搜索框
-                    Section {
-                        HStack(spacing: 10) {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundStyle(.secondary)
-                            TextField("输入城市名称", text: $searchText)
-                                .autocorrectionDisabled()
-                                .textInputAutocapitalization(.never)
+            ZStack {
+                backgroundColor.ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    // Custom title area
+                    HStack {
+                        Text("城市")
+                            .font(DTFont.title1.font)
+                            .foregroundStyle(colorScheme == .dark ? .white : .black)
+                        Spacer()
+                    }
+                    .padding(.horizontal, DTSpacing.lg)
+                    .padding(.top, 8)
+
+                    ScrollView {
+                        VStack(spacing: DTSpacing.md) {
+                            // Search pill
+                            RedesignedSearchPill(text: $searchText)
+                                .padding(.horizontal, DTSpacing.lg)
+
                             if !searchText.isEmpty {
-                                Button {
-                                    searchText = ""
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                        .listRowBackground(rowBackground)
-                    }
-
-                    // 搜索结果（输入时显示）
-                    if !searchText.isEmpty {
-                        Section {
-                            if searchResults.isEmpty {
-                                Text("未找到「\(searchText)」")
-                                    .foregroundStyle(.secondary)
-                                    .listRowBackground(rowBackground)
+                                searchResultsView
                             } else {
-                                ForEach(searchResults, id: \.name) { preset in
-                                    let alreadyAdded = store.cities.contains { $0.name == preset.name }
-                                    Button {
-                                        if alreadyAdded {
-                                            if let idx = store.cities.firstIndex(where: { $0.name == preset.name }) {
-                                                store.selectedIndex = idx
-                                            }
-                                        } else {
-                                            store.addCity(preset)
-                                        }
-                                        searchText = ""
-                                    } label: {
-                                        HStack {
-                                            Text(preset.name)
-                                                .foregroundStyle(.primary)
-                                            Spacer()
-                                            Image(systemName: alreadyAdded ? "checkmark.circle.fill" : "plus.circle.fill")
-                                                .foregroundStyle(alreadyAdded ? .green : .blue)
-                                        }
-                                    }
-                                    .listRowBackground(rowBackground)
-                                }
+                                cityListView
                             }
-                        } header: {
-                            Text(searchResults.isEmpty ? "搜索结果" : "点击城市名称可添加")
                         }
-                    }
-
-                    // 已添加城市
-                    Section {
-                        ForEach(Array(store.cities.enumerated()), id: \.element.id) { idx, city in
-                            Button {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                    store.selectedIndex = idx
-                                }
-                            } label: {
-                                CityRowView(city: city, isSelected: store.selectedIndex == idx)
-                            }
-                            .buttonStyle(.plain)
-                            .listRowBackground(rowBackground)
-                            .opacity(listAppear ? 1 : 0)
-                            .offset(x: listAppear ? 0 : -30)
-                            .animation(
-                                .spring(response: 0.5, dampingFraction: 0.8)
-                                .delay(Double(idx) * 0.08),
-                                value: listAppear
-                            )
-                        }
-                        .onDelete { offsets in
-                            store.removeCity(at: offsets)
-                        }
-                    } header: {
-                        Text("已添加城市")
-                            .opacity(listAppear ? 1 : 0)
-                            .offset(x: listAppear ? 0 : -20)
-                            .animation(.spring(response: 0.5, dampingFraction: 0.8), value: listAppear)
+                        .padding(.top, DTSpacing.sm)
+                        .padding(.bottom, 100)
                     }
                 }
-                .scrollContentBackground(.hidden)
-            .background {
-                WeatherBackgroundView(weatherCode: store.selectedCity?.weather?.current.weather_code)
-                    .ignoresSafeArea()
             }
-            .navigationTitle("城市")
-                .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showingPresets = true
-                        } label: {
-                            Image(systemName: "plus")
+            .toolbar(.hidden, for: .navigationBar)
+            .sheet(isPresented: $showingPresets) {
+                PresetCityPickerView()
+            }
+            .alert("定位失败", isPresented: $showingLocationError) {
+                Button("确定", role: .cancel) { store.locationError = nil }
+                Button("前往设置") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+            } message: {
+                Text(store.locationError ?? "")
+            }
+            .onChange(of: store.locationError) { _, newValue in
+                showingLocationError = newValue != nil
+            }
+            .task {
+                if let selectedCity = store.selectedCity {
+                    if selectedCity.weather == nil ||
+                       selectedCity.lastUpdated == nil ||
+                       Date().timeIntervalSince(selectedCity.lastUpdated!) > 15 * 60 {
+                        await store.fetchWeather(at: store.selectedIndex)
+                    }
+                }
+            }
+            .onAppear { listAppear = true }
+        }
+    }
+
+    // MARK: - Search Results
+
+    @ViewBuilder
+    private var searchResultsView: some View {
+        if searchResults.isEmpty {
+            Text("未找到「\(searchText)」")
+                .font(DTFont.body2.font)
+                .foregroundStyle(.secondary)
+                .padding(.top, DTSpacing.xl)
+        } else {
+            VStack(spacing: DTSpacing.sm) {
+                ForEach(searchResults, id: \.name) { preset in
+                    let alreadyAdded = store.cities.contains { $0.name == preset.name }
+                    Button {
+                        if alreadyAdded {
+                            if let idx = store.cities.firstIndex(where: { $0.name == preset.name }) {
+                                store.selectedIndex = idx
+                            }
+                        } else {
+                            store.addCity(preset)
                         }
-                    }
-                    ToolbarItem(placement: .topBarLeading) {
-                        EditButton()
-                    }
-                }
-                .sheet(isPresented: $showingPresets) {
-                    PresetCityPickerView()
-                }
-                .alert("定位失败", isPresented: $showingLocationError) {
-                    Button("确定", role: .cancel) { store.locationError = nil }
-                    Button("前往设置") {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
+                        searchText = ""
+                    } label: {
+                        HStack {
+                            Text(preset.name)
+                                .font(DTFont.body1.font)
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            Image(systemName: alreadyAdded ? "checkmark.circle.fill" : "plus.circle.fill")
+                                .foregroundStyle(alreadyAdded ? .green : DTColor.Brand.primaryLight)
                         }
+                        .padding(.horizontal, DTSpacing.lg)
+                        .padding(.vertical, DTSpacing.md)
+                        .background(
+                            RoundedRectangle(cornerRadius: DTRadius.lg)
+                                .fill(.ultraThinMaterial)
+                        )
                     }
-                } message: {
-                    Text(store.locationError ?? "")
                 }
-                .onChange(of: store.locationError) { _, newValue in
-                    showingLocationError = newValue != nil
+            }
+            .padding(.horizontal, DTSpacing.lg)
+        }
+    }
+
+    // MARK: - City List
+
+    @ViewBuilder
+    private var cityListView: some View {
+        VStack(spacing: DTSpacing.md) {
+            // Section header with plus button
+            HStack {
+                SectionHeader(icon: "building.2.fill", title: "我的城市")
+                Spacer()
+                Button { showingPresets = true } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(DTColor.Brand.primaryLight)
                 }
-                .task {
-                    // 预加载选中城市的数据（如果没有数据或超过15分钟）
-                    if let selectedCity = store.selectedCity {
-                        if selectedCity.weather == nil ||
-                           selectedCity.lastUpdated == nil ||
-                           Date().timeIntervalSince(selectedCity.lastUpdated!) > 15 * 60 {
-                            await store.fetchWeather(at: store.selectedIndex)
+            }
+            .padding(.horizontal, DTSpacing.lg)
+
+            LazyVStack(spacing: DTSpacing.sm) {
+                ForEach(Array(store.cities.enumerated()), id: \.element.id) { idx, city in
+                    RedesignedCityCard(
+                        city: city,
+                        isSelected: store.selectedIndex == idx,
+                        onSelect: {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                store.selectedIndex = idx
+                            }
+                        },
+                        onDelete: {
+                            store.removeCity(at: IndexSet(integer: idx))
                         }
-                    }
+                    )
+                    .opacity(listAppear ? 1 : 0)
+                    .offset(x: listAppear ? 0 : -30)
+                    .animation(
+                        .spring(response: 0.5, dampingFraction: 0.8)
+                            .delay(Double(idx) * 0.08),
+                        value: listAppear
+                    )
                 }
-                .onAppear {
-                    listAppear = true
-                }
+            }
+            .padding(.horizontal, DTSpacing.lg)
         }
     }
 }
 
-// MARK: - City Row
+// MARK: - Redesigned Search Pill
 
-struct CityRowView: View {
-    let city: CityWeather
-    let isSelected: Bool
-    @State private var appear = false
+struct RedesignedSearchPill: View {
+    @Binding var text: String
     @Environment(\.colorScheme) private var colorScheme
 
-    private var highPriorityAlerts: [WeatherAlert] {
-        city.alerts.filter { $0.severity == .high || $0.severity == .extreme }
+    var body: some View {
+        HStack(spacing: DTSpacing.sm) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.secondary)
+
+            TextField("搜索城市...", text: $text)
+                .font(DTFont.body2.font)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+
+            if !text.isEmpty {
+                Button { text = "" } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(.horizontal, DTSpacing.md)
+        .padding(.vertical, DTSpacing.sm)
+        .background(
+            Capsule()
+                .fill(
+                    colorScheme == .dark
+                        ? Color.white.opacity(0.06)
+                        : Color.black.opacity(0.04)
+                )
+        )
+        .overlay(
+            Capsule()
+                .strokeBorder(
+                    colorScheme == .dark
+                        ? Color.white.opacity(0.08)
+                        : Color.black.opacity(0.06),
+                    lineWidth: 0.5
+                )
+        )
+    }
+}
+
+// MARK: - Redesigned City Card
+
+struct RedesignedCityCard: View {
+    let city: CityWeather
+    let isSelected: Bool
+    let onSelect: () -> Void
+    let onDelete: () -> Void
+
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var weatherTint: Color {
+        guard let code = city.weather?.current.weather_code else { return .clear }
+        switch code {
+        case 0, 1: return DTColor.Weather.sunny
+        case 2: return DTColor.Weather.partlyCloudy
+        case 3: return DTColor.Weather.cloudy
+        case 45, 48: return DTColor.Weather.fog
+        case 51...57: return DTColor.Weather.drizzle
+        case 61...65, 80...82: return DTColor.Weather.rain
+        case 71...77, 85, 86: return DTColor.Weather.snow
+        case 95...99: return DTColor.Weather.thunder
+        default: return .clear
+        }
     }
 
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 4) {
-                    if city.isCurrentLocation {
-                        Image(systemName: "location.fill")
-                            .font(.caption)
-                            .foregroundStyle(.blue)
-                            .symbolEffect(.bounce, value: appear)
-                    }
-                    Text(city.name)
-                        .font(.headline)
-                        .foregroundStyle(Theme.textPrimary(for: colorScheme))
+        Button(action: onSelect) {
+            HStack(spacing: 0) {
+                // Left accent bar (visible when selected)
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(DTColor.Brand.primaryLight)
+                    .frame(width: 3)
+                    .opacity(isSelected ? 1 : 0)
+                    .padding(.vertical, DTSpacing.md)
 
-                    // 告警数量徽章（只显示 high 和 extreme 级别）
-                    if !highPriorityAlerts.isEmpty {
-                        ZStack {
-                            Capsule()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [Color.orange.opacity(0.9), Color.yellow.opacity(0.7)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .symbolEffect(.pulse, options: .repeating, isActive: !highPriorityAlerts.isEmpty)
+                // Card content
+                HStack(spacing: DTSpacing.md) {
+                    // Left: city info
+                    VStack(alignment: .leading, spacing: DTSpacing.xxs) {
+                        HStack(spacing: DTSpacing.xs) {
+                            if city.isCurrentLocation {
+                                Image(systemName: "location.fill")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(DTColor.Brand.primaryLight)
+                            }
+                            Text(city.name)
+                                .font(DTFont.body1.font)
+                                .foregroundStyle(colorScheme == .dark ? .white : .black)
 
-                            Text("\(highPriorityAlerts.count)")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
+                            if !city.alerts.isEmpty {
+                                AlertCountBadge(count: city.alerts.count)
+                            }
                         }
-                        .fixedSize()
+
+                        if let weather = city.weather {
+                            Text(WeatherCode.description(for: weather.current.weather_code))
+                                .font(DTFont.body3.font)
+                                .foregroundStyle(.secondary)
+                        } else if city.isLoading {
+                            Text("加载中...")
+                                .font(DTFont.body3.font)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Spacer()
+
+                    // Right: weather data
+                    if city.isLoading {
+                        ProgressView().scaleEffect(0.8)
+                    } else if let weather = city.weather {
+                        HStack(spacing: DTSpacing.xs) {
+                            Image(systemName: WeatherCode.icon(for: weather.current.weather_code))
+                                .font(.system(size: 20))
+                                .foregroundStyle(WeatherCode.color(for: weather.current.weather_code))
+
+                            Text("\(Int(weather.current.temperature_2m))\u{00B0}")
+                                .font(DTFont.data3.font)
+                                .foregroundStyle(colorScheme == .dark ? .white : .black)
+                        }
                     }
                 }
-                if let weather = city.weather {
-                    Text(WeatherCode.description(for: weather.current.weather_code))
-                        .font(.caption)
-                        .foregroundStyle(Theme.textSecondary(for: colorScheme))
-                } else if city.isLoading {
-                    Text("加载中...")
-                        .font(.caption)
-                        .foregroundStyle(Theme.textSecondary(for: colorScheme))
-                }
+                .padding(.horizontal, DTSpacing.lg)
+                .padding(.vertical, DTSpacing.md)
             }
-
-            Spacer()
-
-            if city.isLoading {
-                ProgressView()
-                    .scaleEffect(0.8)
-                    .scaleEffect(appear ? 1 : 0.5)
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appear)
-            } else if let weather = city.weather {
-                HStack(spacing: 6) {
-                    Image(systemName: WeatherCode.icon(for: weather.current.weather_code))
-                        .foregroundStyle(WeatherCode.color(for: weather.current.weather_code))
-                        .symbolEffect(.bounce, options: .speed(0.6), value: appear)
-                    Text("\(Int(weather.current.temperature_2m))°")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Theme.textPrimary(for: colorScheme))
-                        .opacity(appear ? 1 : 0)
-                        .offset(y: appear ? 0 : 10)
-                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.15), value: appear)
-                }
-            }
-
-            if isSelected {
-                Image(systemName: "checkmark")
-                    .foregroundStyle(.blue)
-                    .font(.caption)
-                    .symbolEffect(.bounce, value: isSelected)
-                    .transition(.scale.combined(with: .opacity))
+            .background(cardBackground)
+            .scaleEffect(isSelected ? 1.01 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSelected)
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button(role: .destructive) {
+                onDelete()
+            } label: {
+                Label("删除城市", systemImage: "trash")
             }
         }
-        .padding(.vertical, 4)
-        .background(isSelected ? Color.blue.opacity(0.08) : .clear)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .scaleEffect(isSelected ? 1.02 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSelected)
-        .onAppear {
-            appear = true
-        }
+    }
+
+    @ViewBuilder
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: DTRadius.xxl)
+            .fill(.ultraThinMaterial)
+            .overlay(
+                RoundedRectangle(cornerRadius: DTRadius.xxl)
+                    .fill(weatherTint.opacity(0.06))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: DTRadius.xxl)
+                    .strokeBorder(
+                        isSelected
+                            ? DTColor.Brand.primaryLight.opacity(0.5)
+                            : (colorScheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.35)),
+                        lineWidth: isSelected ? 1.5 : 0.5
+                    )
+            )
     }
 }
 
@@ -268,14 +347,12 @@ struct PresetCityPickerView: View {
     @State private var isSearching = false
     @State private var searchTask: Task<Void, Never>?
 
-    // 空状态显示常用城市（前20个）
     private let popularCities: [PresetCity] = Array(CityDataService.presetCities.prefix(20))
 
     var body: some View {
         NavigationStack {
             List {
                 if searchText.isEmpty {
-                    // 空状态：显示常用城市
                     Section {
                         ForEach(popularCities, id: \.name) { preset in
                             cityRow(name: preset.name, subtitle: nil,
