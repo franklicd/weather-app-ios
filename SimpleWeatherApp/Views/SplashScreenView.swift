@@ -36,7 +36,11 @@ struct SplashScreenView: View {
             backgroundGradient
 
             // Layer 2: Drifting particles
-            SplashParticles()
+            if phase != .hidden {
+                SplashParticles()
+                    .opacity(taglineVisible ? 0.6 : 0.3)
+                    .animation(.easeIn(duration: 0.8), value: taglineVisible)
+            }
 
             // Layer 3: Center content
             centerContent
@@ -91,15 +95,36 @@ struct SplashScreenView: View {
                 .scaleEffect(iconVisible ? 1.0 : 0.3)
                 .opacity(iconVisible ? 1 : 0)
 
-            // Weather icon
-            Image(systemName: "cloud.sun.fill")
-                .font(.system(size: 72))
-                .symbolRenderingMode(.multicolor)
-                .shadow(color: DTColor.Semantic.warning.opacity(0.4), radius: 20)
-                .scaleEffect(iconVisible ? 1.0 : 0.2)
-                .opacity(iconVisible ? 1 : 0)
+            // App logo icon
+            ZStack {
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "#1A56DB"), Color(hex: "#0A0F1E")],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: 80, height: 80)
+
+                Image(systemName: "cloud.sun.fill")
+                    .font(.system(size: 48, weight: .semibold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 1.0, green: 0.78, blue: 0.2),
+                                Color(red: 1.0, green: 0.55, blue: 0.15),
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+            }
+            .shadow(color: DTColor.Semantic.warning.opacity(0.4), radius: 20)
+            .scaleEffect(iconVisible ? 1.0 : 0.2)
+            .opacity(iconVisible ? 1 : 0)
         }
-        .animation(DTAnimation.gentleSpring, value: iconVisible)
+        .animation(.spring(response: 0.8, dampingFraction: 0.7), value: iconVisible)
     }
 
     // MARK: Title Area
@@ -112,7 +137,7 @@ struct SplashScreenView: View {
                 .foregroundStyle(.white)
                 .opacity(titleVisible ? 1 : 0)
                 .offset(y: titleVisible ? 0 : 16)
-                .animation(.easeOut(duration: 0.5), value: titleVisible)
+                .animation(.spring(response: 0.6, dampingFraction: 0.85), value: titleVisible)
 
             // Tagline
             Text("实时天气  ·  智能预警")
@@ -121,7 +146,7 @@ struct SplashScreenView: View {
                 .tracking(4)
                 .opacity(taglineVisible ? 1 : 0)
                 .offset(y: taglineVisible ? 0 : 8)
-                .animation(.easeOut(duration: 0.4), value: taglineVisible)
+                .animation(.easeOut(duration: 0.5), value: taglineVisible)
         }
     }
 
@@ -178,8 +203,8 @@ private struct SplashParticles: View {
                 // Particle size: 1-3pt based on index
                 let particleSize: Double = 1.0 + Double(i % 3)
 
-                // Particle opacity: 0.05-0.15
-                let opacity: Double = 0.05 + (Double(i % 11) / 10.0) * 0.10
+                // Particle opacity: 0.15-0.30
+                let opacity: Double = 0.15 + (Double(i % 4) * 0.05)
 
                 let rect = CGRect(
                     x: x - particleSize / 2,

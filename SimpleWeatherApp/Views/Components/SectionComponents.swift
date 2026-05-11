@@ -53,29 +53,30 @@ struct AlertCountBadge: View {
     @State private var isPulsing = false
 
     var body: some View {
-        Text("\(count)")
-            .font(DTFont.label2.font)
-            .bold()
-            .foregroundStyle(.white)
-            .padding(.horizontal, DTSpacing.sm)
-            .padding(.vertical, DTSpacing.xxs)
-            .background(
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [DTColor.Semantic.error, DTColor.Semantic.warning],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
+        ZStack {
+            Capsule()
+                .fill(
+                    LinearGradient(
+                        colors: [DTColor.Semantic.error, DTColor.Semantic.warning],
+                        startPoint: .leading,
+                        endPoint: .trailing
                     )
-            )
-            .scaleEffect(isPulsing ? 1.08 : 1.0)
-            .animation(
-                .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
-                value: isPulsing
-            )
-            .onAppear { isPulsing = true }
-            .fixedSize()
+                )
+                .scaleEffect(isPulsing ? 1.05 : 1.0)
+                .animation(
+                    .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
+                    value: isPulsing
+                )
+
+            Text("\(count)")
+                .font(DTFont.label2.font)
+                .bold()
+                .foregroundStyle(.white)
+                .padding(.horizontal, DTSpacing.sm)
+                .padding(.vertical, DTSpacing.xxs)
+        }
+        .fixedSize()
+        .onAppear { isPulsing = true }
     }
 }
 
@@ -123,38 +124,40 @@ struct RedesignedAlertBanner: View {
                     .frame(width: 36, height: 36)
 
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(DTColor.Semantic.warning)
             }
 
             // Title + count subtitle
-            VStack(alignment: .leading, spacing: DTSpacing.xxxs) {
+            VStack(alignment: .leading, spacing: DTSpacing.xxs) {
                 Text("天气警报")
                     .font(DTFont.body1.font)
-                    .foregroundStyle(DTColor.Foreground.primary(colorScheme))
+                    .foregroundStyle(
+                        colorScheme == .dark ? .white : .black
+                    )
 
                 Text("\(alerts.count) 条预警")
                     .font(DTFont.body3.font)
-                    .foregroundStyle(DTColor.Foreground.secondary(colorScheme))
+                    .foregroundStyle(
+                        colorScheme == .dark ? Color.white.opacity(0.5) : Color.black.opacity(0.4)
+                    )
             }
 
             Spacer()
 
-            // Alert count badge + expand chevron
-            AlertCountBadge(count: alerts.count)
-
             Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(DTColor.Foreground.tertiary(colorScheme))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(
+                    colorScheme == .dark ? Color.white.opacity(0.4) : Color.black.opacity(0.3)
+                )
         }
-        .padding(.horizontal, DTSpacing.lg)
-        .padding(.vertical, DTSpacing.md)
+        .padding(DTSpacing.md)
         .background(
             RoundedRectangle(cornerRadius: DTRadius.xl)
                 .fill(DTColor.Semantic.warning.opacity(0.08))
                 .overlay(
                     RoundedRectangle(cornerRadius: DTRadius.xl)
-                        .stroke(DTColor.Semantic.warning.opacity(0.15), lineWidth: 1)
+                        .stroke(DTColor.Semantic.warning.opacity(0.15), lineWidth: 0.5)
                 )
         )
     }
@@ -181,7 +184,7 @@ struct RedesignedAlertBanner: View {
                     .frame(width: 36, height: 36)
 
                 Image(systemName: alert.icon)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(alert.severity.color)
             }
 
@@ -192,25 +195,16 @@ struct RedesignedAlertBanner: View {
                         .font(DTFont.body1.font)
                         .foregroundStyle(DTColor.Foreground.primary(colorScheme))
 
-                    // Severity label capsule
+                    Spacer()
+
                     Text(alert.severity.label)
-                        .font(DTFont.label2.font)
-                        .bold()
+                        .font(DTFont.caption1.font)
+                        .fontWeight(.bold)
                         .foregroundStyle(.white)
                         .padding(.horizontal, DTSpacing.sm)
                         .padding(.vertical, DTSpacing.xxxs)
                         .background(
-                            Capsule()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            alert.severity.color,
-                                            alert.severity.color.opacity(0.75)
-                                        ],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
+                            Capsule().fill(alert.severity.color)
                         )
                         .fixedSize()
                 }

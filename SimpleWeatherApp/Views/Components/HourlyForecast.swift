@@ -74,13 +74,13 @@ struct RedesignedHourlyForecast: View {
                         .opacity(appear ? 1 : 0)
                         .offset(y: appear ? 0 : 12)
                         .animation(
-                            .spring(response: 0.4, dampingFraction: 0.82)
+                            .spring(response: 0.4, dampingFraction: 0.85)
                                 .delay(Double(index) * 0.025),
                             value: appear
                         )
                     }
                 }
-                .padding(.horizontal, DTSpacing.xs)
+                .padding(.horizontal, DTSpacing.xxs)
             }
         }
         .glassCard(cornerRadius: DTRadius.xxl)
@@ -150,6 +150,7 @@ struct RedesignedHourlyItem: View {
             .foregroundStyle(
                 item.isNow ? .white : WeatherCode.color(for: item.weatherCode)
             )
+            .symbolEffect(.bounce, options: .speed(0.5), value: item.isNow)
     }
 
     /// Temperature text with an optional mini progress bar beneath it.
@@ -159,7 +160,11 @@ struct RedesignedHourlyItem: View {
             Text("\(Int(item.temperature))°")
                 .font(item.isNow ? DTFont.data3.font : DTFont.body1.font)
                 .fontWeight(.semibold)
-                .foregroundStyle(item.isNow ? .white : (colorScheme == .dark ? .white : .black))
+                .foregroundStyle(
+                        item.isNow
+                            ? .white
+                            : (colorScheme == .dark ? Color.white.opacity(0.9) : Color.black.opacity(0.8))
+                    )
 
             if !item.isNow {
                 miniBar
@@ -174,15 +179,15 @@ struct RedesignedHourlyItem: View {
             .fill(
                 LinearGradient(
                     colors: [
-                        DTColor.Semantic.info,
-                        DTColor.Semantic.info.opacity(0.5)
+                        DTColor.Semantic.info.opacity(0.6),
+                        DTColor.Brand.secondaryLight.opacity(0.6)
                     ],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
             .frame(
-                width: max(tempProgress * 32, 4),
+                width: max(CGFloat(tempProgress) * 32, 4),
                 height: 3
             )
     }
@@ -196,8 +201,8 @@ struct RedesignedHourlyItem: View {
                 item.isNow
                     ? LinearGradient(
                         colors: [
-                            DTColor.Brand.primaryLight,
-                            DTColor.Semantic.info
+                            Color(hex: "#1A56DB"),
+                            Color(hex: "#3B82F6")
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -206,17 +211,9 @@ struct RedesignedHourlyItem: View {
                         colors: colorScheme == .dark
                             ? [Color.white.opacity(0.06), Color.white.opacity(0.02)]
                             : [Color.black.opacity(0.03), Color.clear],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                        startPoint: .top,
+                        endPoint: .bottom
                     )
-            )
-            .shadow(
-                color: item.isNow
-                    ? DTColor.Semantic.info.opacity(0.35)
-                    : .clear,
-                radius: 10,
-                x: 0,
-                y: 6
             )
     }
 }

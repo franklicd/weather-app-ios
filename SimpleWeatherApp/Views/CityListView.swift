@@ -21,36 +21,38 @@ struct CityListView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
+            ZStack(alignment: .top) {
                 backgroundColor.ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    // Custom title area
-                    HStack {
-                        Text("城市")
-                            .font(DTFont.title1.font)
+                ScrollView {
+                    VStack(spacing: DTSpacing.md) {
+                        // Title
+                        Text("简天气")
+                            .font(DTFont.title2.font)
+                            .fontWeight(.bold)
                             .foregroundStyle(colorScheme == .dark ? .white : .black)
-                        Spacer()
-                    }
-                    .padding(.horizontal, DTSpacing.lg)
-                    .padding(.top, 8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, DTSpacing.lg)
 
-                    ScrollView {
-                        VStack(spacing: DTSpacing.md) {
-                            // Search pill
-                            RedesignedSearchPill(text: $searchText)
-                                .padding(.horizontal, DTSpacing.lg)
+                        // Search pill
+                        RedesignedSearchPill(text: $searchText)
+                            .padding(.horizontal, DTSpacing.lg)
+                            .opacity(listAppear ? 1 : 0)
+                            .offset(y: listAppear ? 0 : -12)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.8), value: listAppear)
 
-                            if !searchText.isEmpty {
-                                searchResultsView
-                            } else {
-                                cityListView
-                            }
+                        if !searchText.isEmpty {
+                            searchResultsView
+                        } else {
+                            cityListView
                         }
-                        .padding(.top, DTSpacing.sm)
-                        .padding(.bottom, 100)
+
+                        // Bottom padding for tab bar
+                        Color.clear.frame(height: 80)
                     }
+                    .padding(.top, DTSpacing.md)
                 }
+                .scrollContentBackground(.hidden)
             }
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showingPresets) {
@@ -133,7 +135,10 @@ struct CityListView: View {
         VStack(spacing: DTSpacing.md) {
             // Section header with plus button
             HStack {
-                SectionHeader(icon: "building.2.fill", title: "我的城市")
+                Text("我的城市")
+                    .font(DTFont.title2.font)
+                    .fontWeight(.bold)
+                    .foregroundStyle(colorScheme == .dark ? .white : .black)
                 Spacer()
                 Button { showingPresets = true } label: {
                     Image(systemName: "plus.circle.fill")
@@ -142,6 +147,9 @@ struct CityListView: View {
                 }
             }
             .padding(.horizontal, DTSpacing.lg)
+            .padding(.top, DTSpacing.sm)
+            .opacity(listAppear ? 1 : 0)
+            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: listAppear)
 
             LazyVStack(spacing: DTSpacing.sm) {
                 ForEach(Array(store.cities.enumerated()), id: \.element.id) { idx, city in
@@ -158,10 +166,10 @@ struct CityListView: View {
                         }
                     )
                     .opacity(listAppear ? 1 : 0)
-                    .offset(x: listAppear ? 0 : -30)
+                    .offset(x: listAppear ? 0 : -24)
                     .animation(
                         .spring(response: 0.5, dampingFraction: 0.8)
-                            .delay(Double(idx) * 0.08),
+                            .delay(Double(idx) * 0.06),
                         value: listAppear
                     )
                 }
@@ -180,8 +188,10 @@ struct RedesignedSearchPill: View {
     var body: some View {
         HStack(spacing: DTSpacing.sm) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.secondary)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(
+                    colorScheme == .dark ? Color.white.opacity(0.4) : Color.black.opacity(0.3)
+                )
 
             TextField("搜索城市...", text: $text)
                 .font(DTFont.body2.font)
@@ -189,15 +199,19 @@ struct RedesignedSearchPill: View {
                 .textInputAutocapitalization(.never)
 
             if !text.isEmpty {
-                Button { text = "" } label: {
+                Button {
+                    withAnimation(.easeOut(duration: 0.15)) { text = "" }
+                } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 16))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(
+                            colorScheme == .dark ? Color.white.opacity(0.3) : Color.black.opacity(0.2)
+                        )
                 }
+                .transition(.scale.combined(with: .opacity))
             }
         }
-        .padding(.horizontal, DTSpacing.md)
-        .padding(.vertical, DTSpacing.sm)
+        .padding(DTSpacing.md)
         .background(
             Capsule()
                 .fill(
@@ -205,14 +219,14 @@ struct RedesignedSearchPill: View {
                         ? Color.white.opacity(0.06)
                         : Color.black.opacity(0.04)
                 )
-        )
-        .overlay(
-            Capsule()
-                .strokeBorder(
-                    colorScheme == .dark
-                        ? Color.white.opacity(0.08)
-                        : Color.black.opacity(0.06),
-                    lineWidth: 0.5
+                .overlay(
+                    Capsule()
+                        .stroke(
+                            colorScheme == .dark
+                                ? Color.white.opacity(0.08)
+                                : Color.black.opacity(0.06),
+                            lineWidth: 0.5
+                        )
                 )
         )
     }
@@ -229,17 +243,19 @@ struct RedesignedCityCard: View {
     @Environment(\.colorScheme) private var colorScheme
 
     private var weatherTint: Color {
-        guard let code = city.weather?.current.weather_code else { return .clear }
+        guard let code = city.weather?.current.weather_code else {
+            return colorScheme == .dark ? Color.white.opacity(0.04) : Color.black.opacity(0.02)
+        }
         switch code {
-        case 0, 1: return DTColor.Weather.sunny
-        case 2: return DTColor.Weather.partlyCloudy
-        case 3: return DTColor.Weather.cloudy
-        case 45, 48: return DTColor.Weather.fog
-        case 51...57: return DTColor.Weather.drizzle
-        case 61...65, 80...82: return DTColor.Weather.rain
-        case 71...77, 85, 86: return DTColor.Weather.snow
-        case 95...99: return DTColor.Weather.thunder
-        default: return .clear
+        case 0, 1: return Color(hex: "#F59E0B").opacity(colorScheme == .dark ? 0.08 : 0.06)
+        case 2: return Color(hex: "#60A5FA").opacity(colorScheme == .dark ? 0.08 : 0.06)
+        case 3: return Color(hex: "#94A3B8").opacity(colorScheme == .dark ? 0.06 : 0.04)
+        case 45, 48: return Color(hex: "#CBD5E1").opacity(colorScheme == .dark ? 0.04 : 0.03)
+        case 51...57: return Color(hex: "#38BDF8").opacity(colorScheme == .dark ? 0.08 : 0.06)
+        case 61...65, 80...82: return Color(hex: "#2563EB").opacity(colorScheme == .dark ? 0.08 : 0.06)
+        case 71...77, 85, 86: return Color(hex: "#BAE6FD").opacity(colorScheme == .dark ? 0.06 : 0.06)
+        case 95...99: return Color(hex: "#A78BFA").opacity(colorScheme == .dark ? 0.08 : 0.06)
+        default: return Color(hex: "#94A3B8").opacity(colorScheme == .dark ? 0.04 : 0.03)
         }
     }
 
@@ -247,11 +263,10 @@ struct RedesignedCityCard: View {
         Button(action: onSelect) {
             HStack(spacing: 0) {
                 // Left accent bar (visible when selected)
-                RoundedRectangle(cornerRadius: 1.5)
-                    .fill(DTColor.Brand.primaryLight)
-                    .frame(width: 3)
-                    .opacity(isSelected ? 1 : 0)
-                    .padding(.vertical, DTSpacing.md)
+                RoundedRectangle(cornerRadius: DTRadius.full)
+                    .fill(isSelected ? DTColor.Brand.primaryLight : .clear)
+                    .frame(width: 3, height: 44)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSelected)
 
                 // Card content
                 HStack(spacing: DTSpacing.md) {
@@ -275,7 +290,9 @@ struct RedesignedCityCard: View {
                         if let weather = city.weather {
                             Text(WeatherCode.description(for: weather.current.weather_code))
                                 .font(DTFont.body3.font)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(
+                                    colorScheme == .dark ? Color.white.opacity(0.5) : Color.black.opacity(0.4)
+                                )
                         } else if city.isLoading {
                             Text("加载中...")
                                 .font(DTFont.body3.font)
@@ -287,7 +304,7 @@ struct RedesignedCityCard: View {
 
                     // Right: weather data
                     if city.isLoading {
-                        ProgressView().scaleEffect(0.8)
+                        ProgressView().scaleEffect(0.75)
                     } else if let weather = city.weather {
                         HStack(spacing: DTSpacing.xs) {
                             Image(systemName: WeatherCode.icon(for: weather.current.weather_code))
@@ -296,7 +313,9 @@ struct RedesignedCityCard: View {
 
                             Text("\(Int(weather.current.temperature_2m))\u{00B0}")
                                 .font(DTFont.data3.font)
-                                .foregroundStyle(colorScheme == .dark ? .white : .black)
+                                .foregroundStyle(
+                                    colorScheme == .dark ? Color.white.opacity(0.9) : Color.black.opacity(0.8)
+                                )
                         }
                     }
                 }
@@ -319,18 +338,18 @@ struct RedesignedCityCard: View {
 
     @ViewBuilder
     private var cardBackground: some View {
-        RoundedRectangle(cornerRadius: DTRadius.xxl)
+        RoundedRectangle(cornerRadius: DTRadius.lg)
             .fill(.ultraThinMaterial)
             .overlay(
-                RoundedRectangle(cornerRadius: DTRadius.xxl)
-                    .fill(weatherTint.opacity(0.06))
+                RoundedRectangle(cornerRadius: DTRadius.lg)
+                    .fill(weatherTint)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: DTRadius.xxl)
-                    .strokeBorder(
+                RoundedRectangle(cornerRadius: DTRadius.lg)
+                    .stroke(
                         isSelected
-                            ? DTColor.Brand.primaryLight.opacity(0.5)
-                            : (colorScheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.35)),
+                            ? DTColor.Brand.primaryLight.opacity(0.3)
+                            : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
                         lineWidth: isSelected ? 1.5 : 0.5
                     )
             )

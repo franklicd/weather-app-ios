@@ -87,7 +87,7 @@ struct TabBarView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        HStack(spacing: DTSpacing.xxxl) {
+        HStack(spacing: 0) {
             ForEach(AppTab.allCases, id: \.self) { tab in
                 TabBarItem(
                     tab: tab,
@@ -100,7 +100,7 @@ struct TabBarView: View {
                 }
             }
         }
-        .padding(.horizontal, DTSpacing.xxl)
+        .padding(.horizontal, DTSpacing.xl)
         .padding(.vertical, DTSpacing.sm)
         .background(
             Capsule()
@@ -110,15 +110,13 @@ struct TabBarView: View {
                         .strokeBorder(
                             colorScheme == .dark
                                 ? Color.white.opacity(0.08)
-                                : Color.white.opacity(0.35),
+                                : Color.white.opacity(0.4),
                             lineWidth: 0.5
                         )
                 )
                 .shadow(
-                    color: colorScheme == .dark
-                        ? Color.black.opacity(0.4)
-                        : Color.black.opacity(0.1),
-                    radius: 20, x: 0, y: 8
+                    color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.06),
+                    radius: 16, x: 0, y: 4
                 )
         )
         .padding(.bottom, 4)
@@ -133,17 +131,10 @@ struct TabBarItem: View {
     let badge: Int
     let action: () -> Void
 
-    @State private var bounced = false
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        Button(action: {
-            action()
-            bounced = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                bounced = false
-            }
-        }) {
+        Button(action: action) {
             VStack(spacing: DTSpacing.xxxs) {
                 ZStack(alignment: .topTrailing) {
                     Image(systemName: tab.icon)
@@ -151,27 +142,33 @@ struct TabBarItem: View {
                         .foregroundStyle(
                             isSelected
                                 ? DTColor.Brand.primaryLight
-                                : (colorScheme == .dark ? Color.white : Color.black).opacity(0.35)
+                                : (colorScheme == .dark ? Color.white.opacity(0.4) : Color.black.opacity(0.3))
                         )
-                        .scaleEffect(bounced ? 1.2 : 1.0)
-                        .animation(DTAnimation.snappySpring, value: bounced)
+                        .symbolEffect(.bounce, value: isSelected)
 
                     if badge > 0 {
                         Circle()
                             .fill(DTColor.Semantic.error)
-                            .frame(width: 8, height: 8)
-                            .offset(x: 4, y: -4)
+                            .frame(width: 12, height: 12)
+                            .overlay(
+                                Text("\(badge)")
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundStyle(.white)
+                            )
+                            .offset(x: 8, y: -4)
                     }
                 }
 
                 Text(tab.label)
                     .font(DTFont.caption2.font)
+                    .fontWeight(isSelected ? .semibold : .regular)
                     .foregroundStyle(
                         isSelected
                             ? DTColor.Brand.primaryLight
-                            : (colorScheme == .dark ? Color.white : Color.black).opacity(0.35)
+                            : (colorScheme == .dark ? Color.white.opacity(0.4) : Color.black.opacity(0.3))
                     )
             }
+            .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
     }

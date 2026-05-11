@@ -36,14 +36,14 @@ enum DTColor {
     /// 10-step neutral palette for light mode (lightest to darkest).
     enum Light {
         static let gray50  = Color(hex: "#FAFBFC")
-        static let gray100 = Color(hex: "#F1F5F9")
-        static let gray200 = Color(hex: "#E2E8F0")
-        static let gray300 = Color(hex: "#CBD5E1")
-        static let gray400 = Color(hex: "#94A3B8")
-        static let gray500 = Color(hex: "#64748B")
-        static let gray600 = Color(hex: "#475569")
-        static let gray700 = Color(hex: "#334155")
-        static let gray800 = Color(hex: "#1E293B")
+        static let gray100 = Color(hex: "#F1F3F5")
+        static let gray200 = Color(hex: "#E5E7EB")
+        static let gray300 = Color(hex: "#D1D5DB")
+        static let gray400 = Color(hex: "#9CA3AF")
+        static let gray500 = Color(hex: "#6B7280")
+        static let gray600 = Color(hex: "#4B5563")
+        static let gray700 = Color(hex: "#374151")
+        static let gray800 = Color(hex: "#1F2937")
         static let gray900 = Color(hex: "#111827")
     }
 
@@ -51,15 +51,15 @@ enum DTColor {
     /// 10-step neutral palette for dark mode (lightest to darkest).
     enum Dark {
         static let gray50  = Color(hex: "#1A1B1E")
-        static let gray100 = Color(hex: "#2A2B30")
-        static let gray200 = Color(hex: "#3A3B42")
-        static let gray300 = Color(hex: "#4A4B54")
-        static let gray400 = Color(hex: "#5A5B66")
-        static let gray500 = Color(hex: "#6A6B78")
-        static let gray600 = Color(hex: "#8A8B98")
-        static let gray700 = Color(hex: "#AAABB8")
-        static let gray800 = Color(hex: "#CACBD8")
-        static let gray900 = Color(hex: "#F1F5F5")
+        static let gray100 = Color(hex: "#25262B")
+        static let gray200 = Color(hex: "#2C2E33")
+        static let gray300 = Color(hex: "#35373C")
+        static let gray400 = Color(hex: "#4A4D54")
+        static let gray500 = Color(hex: "#6B7280")
+        static let gray600 = Color(hex: "#9CA3AF")
+        static let gray700 = Color(hex: "#C4C9D1")
+        static let gray800 = Color(hex: "#E5E7EB")
+        static let gray900 = Color(hex: "#F1F3F5")
     }
 
     // MARK: Atmosphere Tints

@@ -42,7 +42,7 @@ struct RedesignedDetailGrid: View {
                 icon: "wind",
                 label: "风速",
                 value: "\(Int(weather.wind_speed_10m)) km/h",
-                tint: DTColor.Brand.primaryLight
+                tint: Color(hex: "#06B6D4")
             ),
         ]
 
@@ -52,7 +52,7 @@ struct RedesignedDetailGrid: View {
                 icon: "eye.fill",
                 label: "能见度",
                 value: "\(Int(vis / 1000)) km",
-                tint: DTColor.Weather.thunder
+                tint: Color(hex: "#8B5CF6")
             ))
         }
 
@@ -85,16 +85,15 @@ struct RedesignedDetailGrid: View {
                         tint: cell.tint
                     )
                     .opacity(appear ? 1 : 0)
-                    .offset(y: appear ? 0 : 12)
+                    .scaleEffect(appear ? 1 : 0.85)
                     .animation(
-                        .spring(response: 0.45, dampingFraction: 0.78)
+                        .spring(response: 0.5, dampingFraction: 0.8)
                             .delay(DTAnimation.gridStaggerDelay(index: index)),
                         value: appear
                     )
                 }
             }
         }
-        .padding(DTSpacing.md)
         .glassCard(cornerRadius: DTRadius.xxl)
         .onAppear {
             appear = true
@@ -120,10 +119,10 @@ struct DetailDataCell: View {
                 ZStack {
                     Circle()
                         .fill(tint.opacity(0.15))
-                        .frame(width: 30, height: 30)
+                        .frame(width: 32, height: 32)
 
                     Image(systemName: icon)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(tint)
                 }
 
@@ -160,7 +159,7 @@ struct RedesignedAQIUVCard: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(spacing: DTSpacing.md) {
+        VStack(alignment: .leading, spacing: DTSpacing.lg) {
             SectionHeader(icon: "leaf.fill", title: "空气 & 紫外线")
 
             // AQI + UV gauges side by side
@@ -168,7 +167,7 @@ struct RedesignedAQIUVCard: View {
                 if let aqiValue = aq.us_aqi {
                     RedesignedGaugeView(
                         value: aqiValue,
-                        maxValue: 500,
+                        maxValue: 300,
                         label: "AQI",
                         levelText: AirQualityHelper.aqiLevel(for: aqiValue),
                         tint: AirQualityHelper.aqiColor(for: aqiValue)
@@ -178,8 +177,8 @@ struct RedesignedAQIUVCard: View {
                 if let uvValue = aq.uv_index {
                     RedesignedGaugeView(
                         value: Int(uvValue),
-                        maxValue: 12,
-                        label: "UV",
+                        maxValue: 11,
+                        label: "紫外线",
                         levelText: AirQualityHelper.uvLevel(for: uvValue),
                         tint: AirQualityHelper.uvColor(for: uvValue)
                     )
@@ -207,7 +206,6 @@ struct RedesignedAQIUVCard: View {
                 }
             }
         }
-        .padding(DTSpacing.md)
         .glassCard(cornerRadius: DTRadius.xxl)
     }
 }
@@ -230,7 +228,7 @@ struct RedesignedGaugeView: View {
     }
 
     var body: some View {
-        VStack(spacing: DTSpacing.sm) {
+        VStack(spacing: DTSpacing.xs) {
             ZStack {
                 // Track circle
                 Circle()
@@ -253,10 +251,10 @@ struct RedesignedGaugeView: View {
                     .rotationEffect(.degrees(-90))
 
                 // Center value + label
-                VStack(spacing: 2) {
+                VStack(spacing: 0) {
                     Text("\(value)")
                         .font(DTFont.data2.font)
-                        .foregroundStyle(DTColor.Foreground.primary(colorScheme))
+                        .foregroundStyle(tint)
 
                     Text(label)
                         .font(DTFont.caption2.font)
@@ -284,7 +282,7 @@ struct RedesignedGaugeView: View {
 // MARK: - PollutantBar
 
 /// A horizontal progress bar displaying a pollutant concentration value.
-/// Fill color shifts from green to yellow to red based on progress level.
+/// Fill uses a gradient that shifts from green to yellow to red based on progress.
 struct PollutantBar: View {
     let label: String
     let value: Double
@@ -293,47 +291,42 @@ struct PollutantBar: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
-    /// Progress clamped to 0...1.
-    private var progress: CGFloat {
-        CGFloat(Swift.max(0, min(value / maxValue, 1.0)))
+    private var progress: Double {
+        Swift.max(0, min(value / maxValue, 1.0))
     }
 
-    /// Fill color determined by progress threshold.
-    private var fillColor: Color {
-        if progress < 0.5 {
-            return .green
-        } else if progress < 0.75 {
-            return .yellow
-        } else {
-            return .red
-        }
+    private var barColor: Color {
+        if progress < 0.5 { return DTColor.Semantic.success }
+        else if progress < 0.75 { return DTColor.Semantic.warning }
+        else { return DTColor.Semantic.error }
     }
 
     var body: some View {
-        VStack(spacing: DTSpacing.xxs) {
-            // Label + value row
+        VStack(alignment: .leading, spacing: DTSpacing.xxs) {
             HStack {
                 Text(label)
                     .font(DTFont.body3.font)
-                    .foregroundStyle(DTColor.Foreground.secondary(colorScheme))
+                    .foregroundStyle(
+                        colorScheme == .dark
+                            ? Color.white.opacity(0.6)
+                            : Color.black.opacity(0.5)
+                    )
 
                 Spacer()
 
-                Text(String(format: "%.1f ", value) + unit)
+                Text("\(Int(value)) \(unit)")
                     .font(DTFont.label2.font)
                     .fontWeight(.medium)
                     .foregroundStyle(
                         colorScheme == .dark
-                            ? Color.white.opacity(0.7)
-                            : Color.black.opacity(0.6)
+                            ? Color.white.opacity(0.8)
+                            : Color.black.opacity(0.7)
                     )
             }
 
-            // Progress bar
-            GeometryReader { geometry in
+            GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    // Track
-                    RoundedRectangle(cornerRadius: 2)
+                    RoundedRectangle(cornerRadius: DTRadius.full)
                         .fill(
                             colorScheme == .dark
                                 ? Color.white.opacity(0.06)
@@ -341,16 +334,19 @@ struct PollutantBar: View {
                         )
                         .frame(height: 4)
 
-                    // Fill
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(fillColor)
-                        .frame(
-                            width: progress * geometry.size.width,
-                            height: 4
+                    RoundedRectangle(cornerRadius: DTRadius.full)
+                        .fill(
+                            LinearGradient(
+                                colors: [barColor, barColor.opacity(0.6)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
                         )
+                        .frame(width: geo.size.width * CGFloat(progress), height: 4)
                 }
             }
             .frame(height: 4)
         }
+        .padding(.vertical, DTSpacing.xxs)
     }
 }

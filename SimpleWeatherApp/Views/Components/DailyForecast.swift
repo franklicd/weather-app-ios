@@ -58,7 +58,7 @@ struct RedesignedForecastSection: View {
         .glassCard(cornerRadius: DTRadius.xxl)
         .onAppear {
             appear = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 barsAppear = true
             }
         }
@@ -108,13 +108,6 @@ struct RedesignedForecastSection: View {
                     )
             }
         }
-        .opacity(appear ? 1 : 0)
-        .offset(x: appear ? 0 : -30)
-        .animation(
-            .spring(response: 0.5, dampingFraction: 0.8)
-                .delay(Double(index) * 0.08),
-            value: appear
-        )
     }
 
     // MARK: - Row Sub-Components
@@ -124,7 +117,7 @@ struct RedesignedForecastSection: View {
         let isToday = item.date == "今天"
         return Text(item.date)
             .font(DTFont.body2.font)
-            .fontWeight(isToday ? .bold : .medium)
+            .fontWeight(isToday ? .semibold : .medium)
             .foregroundStyle(
                 isToday
                     ? DTColor.Brand.primaryLight
@@ -181,7 +174,7 @@ struct RedesignedForecastSection: View {
                 ? CGFloat((item.max - globalMin) / globalRange)
                 : 1
             let barLeading = totalWidth * leadingFraction
-            let barWidth = max(totalWidth * (trailingFraction - leadingFraction), 4)
+            let barWidth = max(totalWidth * (trailingFraction - leadingFraction), 8)
 
             ZStack(alignment: .leading) {
                 // Background track
@@ -212,7 +205,7 @@ struct RedesignedForecastSection: View {
                     .offset(x: barsAppear ? barLeading : barLeading)
                     .animation(
                         .spring(response: 0.8, dampingFraction: 0.7)
-                            .delay(Double(index) * 0.04),
+                            .delay(0.15 + Double(index) * 0.04),
                         value: barsAppear
                     )
             }

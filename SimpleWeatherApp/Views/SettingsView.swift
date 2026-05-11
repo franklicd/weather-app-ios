@@ -29,9 +29,9 @@ private struct SettingsGroupCard<Content: View>: View {
             RoundedRectangle(cornerRadius: DTRadius.xl)
                 .stroke(
                     colorScheme == .dark
-                        ? DTColor.Glass.borderDark
-                        : DTColor.Glass.borderLight,
-                    lineWidth: 1
+                        ? Color.white.opacity(0.06)
+                        : Color.white.opacity(0.5),
+                    lineWidth: 0.5
                 )
         )
     }
@@ -45,6 +45,8 @@ private struct SettingsRow: View {
     let tint: Color
     let title: String
     let trailing: SettingsRowTrailing
+
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         HStack(spacing: DTSpacing.md) {
@@ -61,7 +63,7 @@ private struct SettingsRow: View {
             // Title
             Text(title)
                 .font(DTFont.body1.font)
-                .foregroundStyle(.primary)
+                .foregroundStyle(colorScheme == .dark ? .white : .black)
 
             Spacer()
 
@@ -69,16 +71,18 @@ private struct SettingsRow: View {
             switch trailing {
             case .text(let value):
                 Text(value)
-                    .font(DTFont.body2.font)
-                    .foregroundStyle(.secondary)
+                    .font(DTFont.body3.font)
+                    .foregroundStyle(
+                        colorScheme == .dark ? Color.white.opacity(0.4) : Color.black.opacity(0.35)
+                    )
             case .activity(let isActive):
                 if isActive {
                     ProgressView()
-                        .scaleEffect(0.8)
+                        .scaleEffect(0.75)
                 }
             }
         }
-        .padding(.vertical, DTSpacing.xs)
+        .padding(.vertical, DTSpacing.sm)
     }
 }
 
@@ -89,7 +93,7 @@ struct LabeledModifier: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
 
     func body(content: Content) -> some View {
-        VStack(alignment: .leading, spacing: DTSpacing.sm) {
+        VStack(alignment: .leading, spacing: DTSpacing.xs) {
             Text(label.uppercased())
                 .font(DTFont.caption1.font)
                 .fontWeight(.semibold)
@@ -147,28 +151,55 @@ struct SettingsView: View {
                 }
                 .scrollContentBackground(.hidden)
             }
-            .navigationTitle("设置")
-            .toolbarBackground(.hidden, for: .navigationBar)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .principal) {
+                ToolbarItem(placement: .topBarLeading) {
                     Text("设置")
                         .font(DTFont.title1.font)
+                        .fontWeight(.bold)
+                        .foregroundStyle(colorScheme == .dark ? .white : .black)
                 }
             }
+            .toolbarBackground(.hidden, for: .navigationBar)
         }
     }
 
     // MARK: - App Identity Header
 
     private var appIdentityHeader: some View {
-        VStack(spacing: DTSpacing.sm) {
-            Image(systemName: "cloud.sun.fill")
-                .font(.system(size: 48))
-                .symbolRenderingMode(.multicolor)
+        VStack(spacing: DTSpacing.md) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "#1A56DB"), Color(hex: "#0A0F1E")],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: 64, height: 64)
+
+                Image(systemName: "cloud.sun.fill")
+                    .font(.system(size: 36, weight: .semibold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 1.0, green: 0.78, blue: 0.2),
+                                Color(red: 1.0, green: 0.55, blue: 0.15),
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+            }
 
             Text("简天气")
                 .font(DTFont.title1.font)
+                .fontWeight(.bold)
+                .foregroundStyle(colorScheme == .dark ? .white : .black)
         }
+        .frame(maxWidth: .infinity)
         .padding(.vertical, DTSpacing.xxl)
     }
 
@@ -187,7 +218,7 @@ struct SettingsView: View {
                 } label: {
                     SettingsRow(
                         iconName: "arrow.clockwise",
-                        tint: .blue,
+                        tint: DTColor.Semantic.info,
                         title: "刷新所有城市数据",
                         trailing: .activity(isRefreshing)
                     )
@@ -196,14 +227,14 @@ struct SettingsView: View {
 
                 SettingsRow(
                     iconName: "building.2",
-                    tint: .purple,
+                    tint: Color(hex: "#8B5CF6"),
                     title: "城市数量",
                     trailing: .text("\(store.cities.count)")
                 )
 
                 SettingsRow(
                     iconName: "exclamationmark.triangle",
-                    tint: Color.orange,
+                    tint: DTColor.Semantic.warning,
                     title: "有预警城市",
                     trailing: .text("\(alertCityCount)")
                 )
@@ -219,21 +250,21 @@ struct SettingsView: View {
             VStack(spacing: 0) {
                 SettingsRow(
                     iconName: "cloud.fill",
-                    tint: .blue,
+                    tint: Color(hex: "#60A5FA"),
                     title: "天气数据来源",
                     trailing: .text("Open-Meteo")
                 )
 
                 SettingsRow(
                     iconName: "info.circle",
-                    tint: Color(hex: "#14B8A6"),
+                    tint: DTColor.Semantic.info,
                     title: "版本",
                     trailing: .text(appVersion)
                 )
 
                 SettingsRow(
                     iconName: "iphone",
-                    tint: .gray,
+                    tint: Color(hex: "#374151"),
                     title: "支持 iOS",
                     trailing: .text("iOS 16+")
                 )
@@ -247,11 +278,15 @@ struct SettingsView: View {
     private var legendSection: some View {
         SettingsGroupCard {
             VStack(alignment: .leading, spacing: DTSpacing.sm) {
+                Text("天气预警说明")
+                    .font(DTFont.body1.font)
+                    .foregroundStyle(colorScheme == .dark ? .white : .black)
+
                 ForEach(AlertSeverity.allCases, id: \.rawValue) { severity in
                     HStack(spacing: DTSpacing.sm) {
                         Circle()
                             .fill(severity.color)
-                            .frame(width: 10, height: 10)
+                            .frame(width: 8, height: 8)
                         Text(severity.label)
                             .font(DTFont.body3.font)
                             .foregroundStyle(.secondary)
@@ -268,9 +303,10 @@ struct SettingsView: View {
     private var footer: some View {
         Text("简天气 — 实时天气，智能预警")
             .font(DTFont.caption2.font)
-            .foregroundStyle(.secondary)
-            .opacity(0.4)
+            .foregroundStyle(
+                colorScheme == .dark ? Color.white.opacity(0.2) : Color.black.opacity(0.2)
+            )
             .frame(maxWidth: .infinity)
-            .padding(.top, DTSpacing.lg)
+            .padding(.top, DTSpacing.xxxl)
     }
 }

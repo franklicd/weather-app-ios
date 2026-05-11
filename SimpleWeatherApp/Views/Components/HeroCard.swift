@@ -33,7 +33,9 @@ struct RedesignedHeroCard: View {
     var body: some View {
         VStack(spacing: DTSpacing.sm) {
             // -- 1. Top row: animated icon + optional alert badge --
-            ZStack(alignment: .topTrailing) {
+            HStack(alignment: .top) {
+                Spacer()
+
                 DynamicWeatherIcon(weatherCode: weather.weather_code)
                     .scaleEffect(breathe ? 1.05 : 1.0)
                     .animation(
@@ -41,10 +43,15 @@ struct RedesignedHeroCard: View {
                         value: breathe
                     )
 
+                Spacer()
+            }
+            .overlay(alignment: .topTrailing) {
                 if alertCount > 0 {
                     AlertCountBadge(count: alertCount)
+                        .offset(x: DTSpacing.xxs, y: -DTSpacing.xxs)
                 }
             }
+            .padding(.top, DTSpacing.lg)
 
             // -- 2. Temperature --
             Text("\(Int(weather.temperature_2m))\u{00B0}")
@@ -74,19 +81,12 @@ struct RedesignedHeroCard: View {
                         ? Color.white.opacity(0.5)
                         : Color.black.opacity(0.4)
                 )
+                .padding(.bottom, DTSpacing.xl)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, DTSpacing.xxl)
         .padding(.horizontal, DTSpacing.xl)
         .background(cardBackground)
-        .shadow(
-            color: colorScheme == .dark
-                ? Color.black.opacity(0.3)
-                : Color.black.opacity(0.08),
-            radius: 24,
-            x: 0,
-            y: 8
-        )
         .onAppear {
             breathe = true
         }
@@ -113,13 +113,24 @@ struct RedesignedHeroCard: View {
             RoundedRectangle(cornerRadius: DTRadius.xxxl)
                 .stroke(
                     LinearGradient(
-                        colors: [Color.white.opacity(0.4), Color.clear],
+                        colors: [
+                            Color.white.opacity(colorScheme == .dark ? 0.1 : 0.4),
+                            Color.white.opacity(0.0)
+                        ],
                         startPoint: .top,
                         endPoint: .center
                     ),
                     lineWidth: 0.5
                 )
         }
+        .shadow(
+            color: colorScheme == .dark
+                ? Color.black.opacity(0.3)
+                : Color.black.opacity(0.08),
+            radius: 24,
+            x: 0,
+            y: 8
+        )
     }
 
     // MARK: - Hero Gradient
@@ -130,63 +141,87 @@ struct RedesignedHeroCard: View {
         let code = weather.weather_code
         let isDark = colorScheme == .dark
 
-        let colors: [Color]
-
         switch code {
         // Clear
         case 0, 1:
-            colors = isDark
-                ? [Color(hex: "#1E3A5F").opacity(0.6), Color(hex: "#2D1B69").opacity(0.4)]
-                : [Color(hex: "#FEF3C7").opacity(0.7), Color(hex: "#FDE68A").opacity(0.5), Color(hex: "#FBBF24").opacity(0.3)]
+            return LinearGradient(
+                colors: isDark
+                    ? [Color(hex: "#1E3A5F").opacity(0.6), Color(hex: "#2D1B69").opacity(0.4)]
+                    : [Color(hex: "#FEF3C7").opacity(0.7), Color(hex: "#FDE68A").opacity(0.5), Color(hex: "#FBBF24").opacity(0.3)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
 
         // Partly Cloudy
         case 2:
-            colors = isDark
-                ? [Color(hex: "#1E3A5F").opacity(0.5), Color(hex: "#374151").opacity(0.4)]
-                : [Color(hex: "#DBEAFE").opacity(0.6), Color(hex: "#E0F2FE").opacity(0.4)]
+            return LinearGradient(
+                colors: isDark
+                    ? [Color(hex: "#1E3A5F").opacity(0.5), Color(hex: "#374151").opacity(0.4)]
+                    : [Color(hex: "#DBEAFE").opacity(0.6), Color(hex: "#E0F2FE").opacity(0.4)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
 
         // Drizzle
         case 51...57:
-            colors = isDark
-                ? [Color(hex: "#0F172A").opacity(0.6), Color(hex: "#1E293B").opacity(0.4)]
-                : [Color(hex: "#E0F2FE").opacity(0.5), Color(hex: "#BAE6FD").opacity(0.3)]
+            return LinearGradient(
+                colors: isDark
+                    ? [Color(hex: "#0F172A").opacity(0.6), Color(hex: "#1E293B").opacity(0.4)]
+                    : [Color(hex: "#E0F2FE").opacity(0.5), Color(hex: "#BAE6FD").opacity(0.3)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
 
         // Rain
         case 61...65, 80...82:
-            colors = isDark
-                ? [Color(hex: "#0F172A").opacity(0.6), Color(hex: "#1E293B").opacity(0.4)]
-                : [Color(hex: "#CBD5E1").opacity(0.5), Color(hex: "#94A3B8").opacity(0.3)]
+            return LinearGradient(
+                colors: isDark
+                    ? [Color(hex: "#0F172A").opacity(0.6), Color(hex: "#1E293B").opacity(0.4)]
+                    : [Color(hex: "#CBD5E1").opacity(0.5), Color(hex: "#94A3B8").opacity(0.3)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
 
         // Snow
         case 71...77, 85, 86:
-            colors = isDark
-                ? [Color(hex: "#1E293B").opacity(0.5), Color(hex: "#334155").opacity(0.3)]
-                : [Color(hex: "#F0F9FF").opacity(0.7), Color(hex: "#E0F2FE").opacity(0.5)]
+            return LinearGradient(
+                colors: isDark
+                    ? [Color(hex: "#1E293B").opacity(0.5), Color(hex: "#334155").opacity(0.3)]
+                    : [Color(hex: "#F0F9FF").opacity(0.7), Color(hex: "#E0F2FE").opacity(0.5)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
 
         // Thunderstorm
         case 95...99:
-            colors = isDark
-                ? [Color(hex: "#1E1B4B").opacity(0.6), Color(hex: "#312E81").opacity(0.4)]
-                : [Color(hex: "#DDD6FE").opacity(0.5), Color(hex: "#C4B5FD").opacity(0.3)]
+            return LinearGradient(
+                colors: isDark
+                    ? [Color(hex: "#1E1B4B").opacity(0.6), Color(hex: "#312E81").opacity(0.4)]
+                    : [Color(hex: "#DDD6FE").opacity(0.5), Color(hex: "#C4B5FD").opacity(0.3)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
 
         // Fog
         case 45, 48:
-            colors = isDark
-                ? [Color(hex: "#1E293B").opacity(0.4), Color(hex: "#0F172A").opacity(0.3)]
-                : [Color(hex: "#F1F5F9").opacity(0.5), Color(hex: "#E2E8F0").opacity(0.3)]
+            return LinearGradient(
+                colors: isDark
+                    ? [Color(hex: "#1E293B").opacity(0.4), Color(hex: "#0F172A").opacity(0.3)]
+                    : [Color(hex: "#F1F5F9").opacity(0.5), Color(hex: "#E2E8F0").opacity(0.3)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
 
         // Default (overcast / unknown)
         default:
-            colors = isDark
-                ? [Color.white.opacity(0.06), Color.white.opacity(0.02)]
-                : [Color.white.opacity(0.5), Color.white.opacity(0.3)]
+            return LinearGradient(
+                colors: isDark
+                    ? [Color.white.opacity(0.06), Color.white.opacity(0.02)]
+                    : [Color.white.opacity(0.5), Color.white.opacity(0.3)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
         }
-
-        return LinearGradient(
-            colors: colors,
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
     }
 }
 

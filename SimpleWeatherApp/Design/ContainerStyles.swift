@@ -36,7 +36,7 @@ struct GlassCard: ViewModifier {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .strokeBorder(
+                    .stroke(
                         colorScheme == .dark
                             ? Color.white.opacity(0.08)
                             : Color.white.opacity(0.35),
@@ -69,7 +69,7 @@ struct TintedCard: ViewModifier {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .strokeBorder(tint.opacity(0.12), lineWidth: 0.5)
+                    .stroke(tint.opacity(0.12), lineWidth: 0.5)
             )
     }
 }
