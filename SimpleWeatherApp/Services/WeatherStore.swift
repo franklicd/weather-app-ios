@@ -48,6 +48,8 @@ class WeatherStore {
     // 30 分钟自动刷新所有城市
     private func startAutoRefresh() {
         Task {
+            // 启动后立即刷新一次所有城市
+            await fetchAllWeather()
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(30 * 60))
                 guard !Task.isCancelled else { break }
@@ -101,9 +103,14 @@ class WeatherStore {
 
         guard cities.indices.contains(index) else { return }
         cities[index].weather = weather
-        cities[index].airQuality = aq
+        // 保留旧的 AQI 数据，仅在成功获取新数据时才更新
+        if let aq = aq {
+            cities[index].airQuality = aq
+        }
         if let weather {
-            let newAlerts = AlertGenerator.generate(from: weather, airQuality: aq)
+            // 使用最新的 AQI 数据（新获取的或缓存的）
+            let effectiveAQ = aq ?? cities[index].airQuality
+            let newAlerts = AlertGenerator.generate(from: weather, airQuality: effectiveAQ)
             cities[index].alerts = newAlerts
             // 只有在需要发送通知且是当前选中的城市时才发送推送
             if sendNotification && index == selectedIndex {
@@ -116,7 +123,9 @@ class WeatherStore {
             cities[index].fetchError = "网络请求失败，请检查网络连接后下拉刷新"
         }
         cities[index].isLoading = false
-        cities[index].lastUpdated = Date()
+        if weather != nil {
+            cities[index].lastUpdated = Date()
+        }
         saveCities()
     }
 
